@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sobha Verde Dashboard · V2.4.4</title>
+<title>Sobha Verde Dashboard · V2.4.3</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
 // ── IDLE DIAGNOSTICS ──────────────────────────────────────────
 function updateIdleDiag() {
@@ -752,7 +752,7 @@ table{width:100%;box-sizing:border-box}
 </svg></div>
     <div style="font-size:10px;color:#64748b;font-weight:600;letter-spacing:.5px;text-transform:uppercase">Site Intelligence</div>
     <div style="margin-top:4px;display:flex;align-items:center;gap:6px">
-      <span style="background:linear-gradient(135deg,#1a4d35,#2a7a52);color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;letter-spacing:.5px">V2.4.4</span>
+      <span style="background:linear-gradient(135deg,#1a4d35,#2a7a52);color:#fff;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;letter-spacing:.5px">V2.4.3</span>
       <span style="font-size:9px;color:#c9a84c;font-weight:600;letter-spacing:.3px">DUAL-API</span>
     </div>
   </div>
@@ -769,7 +769,6 @@ table{width:100%;box-sizing:border-box}
     <div class="ni" onclick="nav('absence-validator')"><span class="ni-ic">🔎</span><span class="ni-lb">Absent Analytics</span></div>
     <div class="ni" onclick="nav('hours-breakdown')"><span class="ni-ic">📋</span><span class="ni-lb">Hours Breakdown</span></div>
     <div class="ni" onclick="nav('worker-profiles')"><span class="ni-ic">🪪</span><span class="ni-lb">Worker Registry</span></div>
-    <div class="ni" onclick="nav('floor-workers')"><span class="ni-ic">🏢</span><span class="ni-lb">Floor Worker ID</span></div>
     <div class="nav-sec">Operations</div>
     <div class="ni" onclick="nav('alerts')" style="background:#fff0f0;border-left:3px solid #dc2626"><span class="ni-ic">🚨</span><span class="ni-lb" style="font-weight:700;color:#dc2626">SOS & Alerts</span><span class="ni-badge" id="sos-badge">2</span></div>
     <div class="ni" onclick="nav('reports')"><span class="ni-ic">📄</span><span class="ni-lb">Reports</span></div>
@@ -2254,7 +2253,7 @@ table{width:100%;box-sizing:border-box}
     <div id="wp-detail-content"></div>
   </div>
 </section>
-<!-- ══════════════════════════════════════════════════════════ CLASSIFICATION CHANGE LOG PAGE (V2.4.4) -->
+<!-- ══════════════════════════════════════════════════════════ CLASSIFICATION CHANGE LOG PAGE (V2.4.3) -->
 <section class="page" id="page-change-log">
   <div style="margin-bottom:18px">
     <div style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:4px">🗓️ Classification Change Log</div>
@@ -3429,668 +3428,6 @@ table{width:100%;box-sizing:border-box}
   </div>
 </section>
 
-<!-- PAGE: FLOOR WORKER IDENTIFICATION (V2.4.4.1) -->
-<section class="page" id="page-floor-workers">
-  <div class="page-header">
-    <div>
-      <h2>🏢 Floor Worker Identification</h2>
-      <p>Select one or more floors to identify all workers detected on those floors — with hours, idle time, and session breakdown</p>
-    </div>
-    <div class="page-actions">
-      <button class="btn btn-secondary" onclick="renderFloorWorkersPage()">⟳ Refresh</button>
-      <button class="btn btn-secondary" onclick="exportFloorWorkersCSV()">⬇ Export CSV</button>
-    </div>
-  </div>
-
-  <!-- FLOOR SELECTOR -->
-  <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
-    <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
-      <div style="flex:1;min-width:260px">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px">SELECT FLOORS</div>
-        <div id="fw-floor-pills" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px">
-          <span style="color:var(--muted);font-size:12px;padding-top:6px">Loading floors…</span>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:flex-end;padding-top:22px;flex-shrink:0">
-        <button class="btn btn-secondary" onclick="fwSelectAll()" style="font-size:12px;padding:6px 12px">Select All</button>
-        <button class="btn btn-secondary" onclick="fwClearAll()" style="font-size:12px;padding:6px 12px">Clear</button>
-        <button class="btn btn-primary" onclick="fwApply()" style="font-size:12px;padding:6px 14px">Apply ▶</button>
-      </div>
-    </div>
-    <div id="fw-selection-summary" style="margin-top:10px;font-size:12px;color:var(--dim);font-weight:500"></div>
-  </div>
-
-  <!-- KPI STRIP -->
-  <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:16px" id="fw-kpi-grid">
-    <div class="kpi-card green"><span class="kpi-icon">🦺</span>
-      <div class="kpi-label">Total Workers</div>
-      <div class="kpi-val" id="fw-kpi-workers">—</div>
-      <div class="kpi-sub">Detected on selected floors</div>
-    </div>
-    <div class="kpi-card" style="border-left:4px solid var(--accent)"><span class="kpi-icon">⏱</span>
-      <div class="kpi-label">Total Active Hrs</div>
-      <div class="kpi-val" id="fw-kpi-active">—</div>
-      <div class="kpi-sub">Sum of productive anchor time</div>
-    </div>
-    <div class="kpi-card orange"><span class="kpi-icon">⏸</span>
-      <div class="kpi-label">Total Idle Time</div>
-      <div class="kpi-val" id="fw-kpi-idle">—</div>
-      <div class="kpi-sub">Uncovered / idle gaps</div>
-    </div>
-    <div class="kpi-card" style="border-left:4px solid #2a7a52"><span class="kpi-icon">🚶</span>
-      <div class="kpi-label">Total Transit</div>
-      <div class="kpi-val" id="fw-kpi-transit">—</div>
-      <div class="kpi-sub">Floor-change transit gaps</div>
-    </div>
-    <div class="kpi-card purple"><span class="kpi-icon">📡</span>
-      <div class="kpi-label">Total Sessions</div>
-      <div class="kpi-val" id="fw-kpi-sessions">—</div>
-      <div class="kpi-sub">Anchor detection events</div>
-    </div>
-  </div>
-
-  <!-- 7-DAY TREND CHART -->
-  <div id="fw-trend-panel" style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-      <div>
-        <div style="font-size:13px;font-weight:700;color:var(--text)">📈 Worker Presence — Last 7 Days</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">Unique workers detected per floor per day · select floors above then load</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span id="fw-trend-status" style="font-size:11px;color:var(--muted)"></span>
-        <button class="btn btn-primary" onclick="fwLoadTrendChart()" id="fw-trend-btn" style="font-size:12px;padding:6px 14px">Load 7-Day Chart</button>
-      </div>
-    </div>
-    <div id="fw-trend-body" style="position:relative;height:260px;display:flex;align-items:center;justify-content:center">
-      <span style="color:var(--muted);font-size:12px">Select floors and click <strong>Load 7-Day Chart</strong></span>
-    </div>
-  </div>
-
-  <!-- EFFICIENCY SUMMARY -->
-  <div id="fw-eff-bar" style="display:none;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;gap:24px;flex-wrap:wrap;align-items:center">
-    <div style="font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px">Floor Avg Efficiency:</div>
-    <div style="display:flex;gap:16px;flex-wrap:wrap">
-      <span><span style="color:#16a34a;font-weight:700;font-size:16px" id="fw-avg-eff">—</span> <span style="font-size:11px;color:var(--muted)">avg efficiency</span></span>
-      <span><span style="color:#16a34a;font-weight:700" id="fw-high-eff">—</span> <span style="font-size:11px;color:var(--muted)">≥80%</span></span>
-      <span><span style="color:#d97706;font-weight:700" id="fw-mid-eff">—</span> <span style="font-size:11px;color:var(--muted)">50–79%</span></span>
-      <span><span style="color:#dc2626;font-weight:700" id="fw-low-eff">—</span> <span style="font-size:11px;color:var(--muted)">&lt;50%</span></span>
-    </div>
-  </div>
-
-  <!-- FILTER BAR -->
-  <div class="filter-bar" id="fw-filter-bar" style="display:none">
-    <div class="search-box"><span>🔍</span><input type="text" id="fw-search" placeholder="Search token or foreman…" oninput="fwFilterTable()"></div>
-    <select id="fw-sort" onchange="fwFilterTable()" style="background:#f8fafc;border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;font-size:13px">
-      <option value="active-desc">Sort: Most Active First</option>
-      <option value="active-asc">Sort: Least Active First</option>
-      <option value="idle-desc">Sort: Most Idle First</option>
-      <option value="eff-desc">Sort: Highest Efficiency First</option>
-      <option value="eff-asc">Sort: Lowest Efficiency First</option>
-      <option value="sessions-desc">Sort: Most Sessions First</option>
-      <option value="tid-asc">Sort: Token ID A→Z</option>
-    </select>
-    <select id="fw-eff-filter" onchange="fwFilterTable()" style="background:#f8fafc;border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;font-size:13px">
-      <option value="all">All Efficiency</option>
-      <option value="high">High (≥80%)</option>
-      <option value="mid">Medium (50–79%)</option>
-      <option value="low">Low (&lt;50%)</option>
-    </select>
-    <div id="fw-count-label" style="margin-left:auto;font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap"></div>
-  </div>
-
-  <!-- WORKER TABLE -->
-  <div class="card" style="padding:0;overflow:hidden" id="fw-table-wrap">
-    <div style="padding:40px;text-align:center;color:var(--muted);font-size:13px">
-      Select one or more floors above and click <strong>Apply</strong> to see workers on those floors.
-    </div>
-  </div>
-</section>
-
-<script>
-// ── FLOOR WORKER IDENTIFICATION — V2.4.4.1 ──────────────────────────────────
-let _fwSelectedFloors = new Set();
-let _fwWorkers = [];           // filtered worker list after Apply
-
-function renderFloorWorkersPage() {
-  if (!DATA || !Array.isArray(DATA.workers)) {
-    document.getElementById('fw-floor-pills').innerHTML =
-      '<span style="color:var(--muted);font-size:12px">No data loaded — refresh the dashboard first.</span>';
-    return;
-  }
-
-  // Collect all unique floors across all workers
-  const allFloors = new Set();
-  DATA.workers.forEach(w => {
-    (w.floors || []).forEach(f => allFloors.add(Number(f)));
-    // Also grab floors from sessionsDetail for better coverage
-    (w.sessionsDetail || []).forEach(s => {
-      if (s.fl !== undefined && s.fl !== null) allFloors.add(Number(s.fl));
-    });
-  });
-
-  const sortedFloors = [...allFloors].sort((a, b) => a - b);
-
-  // Build floor pills
-  const pillsEl = document.getElementById('fw-floor-pills');
-  if (sortedFloors.length === 0) {
-    pillsEl.innerHTML = '<span style="color:var(--muted);font-size:12px">No floor data available in current dataset.</span>';
-    return;
-  }
-
-  pillsEl.innerHTML = sortedFloors.map(fl => {
-    const sel = _fwSelectedFloors.has(fl);
-    return `<button
-      id="fw-pill-${fl}"
-      onclick="fwToggleFloor(${fl})"
-      style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid ${sel ? 'var(--accent)' : 'var(--border)'};background:${sel ? 'var(--accent)' : '#f8fafc'};color:${sel ? '#fff' : 'var(--dim)'};transition:all .15s">
-      FL${fl}
-    </button>`;
-  }).join('');
-
-  _fwUpdateSummary();
-}
-
-function fwToggleFloor(fl) {
-  if (_fwSelectedFloors.has(fl)) {
-    _fwSelectedFloors.delete(fl);
-  } else {
-    _fwSelectedFloors.add(fl);
-  }
-  // Update pill style
-  const pill = document.getElementById('fw-pill-' + fl);
-  if (pill) {
-    const sel = _fwSelectedFloors.has(fl);
-    pill.style.border = `2px solid ${sel ? 'var(--accent)' : 'var(--border)'}`;
-    pill.style.background = sel ? 'var(--accent)' : '#f8fafc';
-    pill.style.color = sel ? '#fff' : 'var(--dim)';
-  }
-  _fwUpdateSummary();
-}
-
-function fwSelectAll() {
-  document.querySelectorAll('[id^="fw-pill-"]').forEach(p => {
-    const fl = Number(p.id.replace('fw-pill-', ''));
-    _fwSelectedFloors.add(fl);
-    p.style.border = '2px solid var(--accent)';
-    p.style.background = 'var(--accent)';
-    p.style.color = '#fff';
-  });
-  _fwUpdateSummary();
-}
-
-function fwClearAll() {
-  _fwSelectedFloors.clear();
-  document.querySelectorAll('[id^="fw-pill-"]').forEach(p => {
-    p.style.border = '2px solid var(--border)';
-    p.style.background = '#f8fafc';
-    p.style.color = 'var(--dim)';
-  });
-  _fwUpdateSummary();
-}
-
-function _fwUpdateSummary() {
-  const el = document.getElementById('fw-selection-summary');
-  if (!el) return;
-  if (_fwSelectedFloors.size === 0) {
-    el.textContent = 'No floors selected.';
-  } else {
-    const sorted = [..._fwSelectedFloors].sort((a,b)=>a-b);
-    el.innerHTML = `<strong>${sorted.length}</strong> floor${sorted.length!==1?'s':''} selected: ${sorted.map(f=>'<strong>FL'+f+'</strong>').join(', ')}`;
-  }
-}
-
-function fwApply() {
-  if (!DATA || !Array.isArray(DATA.workers)) return;
-  if (_fwSelectedFloors.size === 0) {
-    document.getElementById('fw-table-wrap').innerHTML =
-      '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px">Please select at least one floor.</div>';
-    return;
-  }
-
-  // Filter workers who have any session on the selected floors
-  const selectedSet = _fwSelectedFloors;
-  _fwWorkers = DATA.workers.filter(w => {
-    // Check w.floors array
-    if ((w.floors || []).some(f => selectedSet.has(Number(f)))) return true;
-    // Also check sessionsDetail for floor-level precision
-    if ((w.sessionsDetail || []).some(s => s.fl !== undefined && selectedSet.has(Number(s.fl)))) return true;
-    return false;
-  });
-
-  _fwRenderKPIs();
-  _fwShowFilterBar();
-  fwFilterTable();
-}
-
-function _fwRenderKPIs() {
-  const ws = _fwWorkers;
-  const totalActive  = ws.reduce((s,w) => s + (w.active  || 0), 0);
-  const totalIdle    = ws.reduce((s,w) => s + (w.inactive || 0), 0);
-  const totalTransit = ws.reduce((s,w) => s + (w.transit  || 0), 0);
-  const totalSess    = ws.reduce((s,w) => s + (w.sessions || 0), 0);
-
-  const setEl2 = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
-  setEl2('fw-kpi-workers',  ws.length);
-  setEl2('fw-kpi-active',   fmtHrs(totalActive));
-  setEl2('fw-kpi-idle',     fmtHrs(totalIdle));
-  setEl2('fw-kpi-transit',  fmtHrs(totalTransit));
-  setEl2('fw-kpi-sessions', totalSess);
-
-  // Efficiency breakdown
-  const effWorkers = ws.filter(w => w.eff !== undefined && w.eff !== null);
-  const avgEff = effWorkers.length ? Math.round(effWorkers.reduce((s,w)=>s+(w.eff||0),0)/effWorkers.length) : null;
-  const highEff = effWorkers.filter(w=>w.eff>=80).length;
-  const midEff  = effWorkers.filter(w=>w.eff>=50&&w.eff<80).length;
-  const lowEff  = effWorkers.filter(w=>w.eff<50).length;
-
-  const effBar = document.getElementById('fw-eff-bar');
-  if (effBar) {
-    effBar.style.display = 'flex';
-    setEl2('fw-avg-eff',  avgEff !== null ? avgEff+'%' : '—');
-    setEl2('fw-high-eff', highEff);
-    setEl2('fw-mid-eff',  midEff);
-    setEl2('fw-low-eff',  lowEff);
-  }
-}
-
-function _fwShowFilterBar() {
-  const fb = document.getElementById('fw-filter-bar');
-  if (fb) fb.style.display = '';
-  document.getElementById('fw-search').value = '';
-  document.getElementById('fw-sort').value   = 'active-desc';
-  document.getElementById('fw-eff-filter').value = 'all';
-}
-
-function fwFilterTable() {
-  const q       = (document.getElementById('fw-search')?.value || '').toLowerCase();
-  const sort    = document.getElementById('fw-sort')?.value || 'active-desc';
-  const effFilt = document.getElementById('fw-eff-filter')?.value || 'all';
-  const PLANNED_S = getEffectivePlannedS();
-
-  let ws = _fwWorkers.filter(w => {
-    if (q && !w.tid.toLowerCase().includes(q) && !(w.formen||'').toLowerCase().includes(q)) return false;
-    if (effFilt === 'high' && (w.eff === undefined || w.eff < 80))  return false;
-    if (effFilt === 'mid'  && (w.eff === undefined || w.eff < 50 || w.eff >= 80)) return false;
-    if (effFilt === 'low'  && (w.eff === undefined || w.eff >= 50)) return false;
-    return true;
-  });
-
-  ws = [...ws].sort((a, b) => {
-    if (sort === 'active-desc')   return (b.active||0) - (a.active||0);
-    if (sort === 'active-asc')    return (a.active||0) - (b.active||0);
-    if (sort === 'idle-desc')     return (b.inactive||0) - (a.inactive||0);
-    if (sort === 'eff-desc')      return (b.eff||0) - (a.eff||0);
-    if (sort === 'eff-asc')       return (a.eff||0) - (b.eff||0);
-    if (sort === 'sessions-desc') return (b.sessions||0) - (a.sessions||0);
-    if (sort === 'tid-asc')       return a.tid.localeCompare(b.tid);
-    return 0;
-  });
-
-  const lbl = document.getElementById('fw-count-label');
-  if (lbl) lbl.textContent = `Showing ${ws.length} of ${_fwWorkers.length} workers`;
-
-  const selectedFloorsSorted = [..._fwSelectedFloors].sort((a,b)=>a-b);
-
-  const wrap = document.getElementById('fw-table-wrap');
-  if (ws.length === 0) {
-    wrap.innerHTML = '<div style="padding:30px;text-align:center;color:var(--muted);font-size:13px">No workers match the current filters.</div>';
-    return;
-  }
-
-  wrap.innerHTML = `
-    <div class="tbl-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th style="padding:10px 14px">Token ID</th>
-          <th style="padding:10px 14px">Foreman</th>
-          <th style="padding:10px 14px">Division</th>
-          <th style="padding:10px 14px;text-align:center">Sessions</th>
-          <th style="padding:10px 14px;text-align:center" title="All floors this worker was detected on">All Floors</th>
-          <th style="padding:10px 14px;text-align:center" title="Sessions on selected floors only">Selected FL Sessions</th>
-          <th style="padding:10px 14px;text-align:center">🟢 Active Time</th>
-          <th style="padding:10px 14px;text-align:center">🔵 Transit</th>
-          <th style="padding:10px 14px;text-align:center">⏸ Idle</th>
-          <th style="padding:10px 14px;text-align:center">Efficiency</th>
-          <th style="padding:10px 14px;text-align:center">First Seen</th>
-          <th style="padding:10px 14px;text-align:center">Last Seen</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${ws.map(w => {
-          const untracked = Math.max(0, PLANNED_S - (w.active||0) - (w.transit||0) - (w.inactive||0));
-          const ec = (w.inactive||0) === 0 ? '#16a34a' : (w.inactive||0) < 3600 ? '#d97706' : '#dc2626';
-          const effColor = w.eff === undefined || w.eff === null ? '#94a3b8'
-            : w.eff >= 80 ? '#16a34a' : w.eff >= 50 ? '#d97706' : '#dc2626';
-          const effLabel = w.eff !== undefined && w.eff !== null ? w.eff+'%' : '—';
-
-          // Sessions on selected floors specifically
-          const flSessions = (w.sessionsDetail||[]).filter(s =>
-            s.fl !== undefined && selectedFloorsSorted.includes(Number(s.fl))
-          );
-          const flSessionCount = flSessions.length;
-          const flActiveS = flSessions.reduce((s, sess) => s + (sess.dur||0), 0);
-
-          // First/last seen
-          const allSess = w.sessionsDetail || [];
-          const firstSeen = allSess.length ? allSess[0].start : '—';
-          const lastSeen  = allSess.length ? allSess[allSess.length-1].end : '—';
-
-          const floorTag = (w.floors||[]).length
-            ? (w.floors||[]).slice().sort((a,b)=>Number(a)-Number(b)).map(f=>'FL'+f).join(', ')
-            : '—';
-
-          return `<tr style="border-bottom:1px solid var(--border);cursor:pointer" onclick="fwToggleWorkerDetail('${w.tid}')">
-            <td style="padding:9px 14px;font-weight:700;color:var(--accent)">${w.tid}</td>
-            <td style="padding:9px 14px;color:var(--dim);font-size:12px">${w.formen||'—'}</td>
-            <td style="padding:9px 14px;color:var(--dim);font-size:12px">${w.div||w.division||'—'}</td>
-            <td style="padding:9px 14px;text-align:center">${w.sessions||0}</td>
-            <td style="padding:9px 14px;text-align:center;font-size:11px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${floorTag}">${floorTag}</td>
-            <td style="padding:9px 14px;text-align:center">
-              <span style="font-weight:700;color:var(--accent)">${flSessionCount}</span>
-              ${flSessionCount > 0 ? `<span style="font-size:10px;color:#16a34a;margin-left:4px">(${fmtHrs(flActiveS)})</span>` : ''}
-            </td>
-            <td style="padding:9px 14px;text-align:center;font-weight:700;color:#16a34a">${fmtHrs(w.active||0)}</td>
-            <td style="padding:9px 14px;text-align:center;color:#2a7a52">${fmtHrs(w.transit||0)}</td>
-            <td style="padding:9px 14px;text-align:center;font-weight:700;color:${ec}">${fmtHrs(w.inactive||0)}</td>
-            <td style="padding:9px 14px;text-align:center;font-weight:700;color:${effColor}">${effLabel}</td>
-            <td style="padding:9px 14px;text-align:center;font-size:11px;color:var(--muted)">${firstSeen}</td>
-            <td style="padding:9px 14px;text-align:center;font-size:11px;color:var(--muted)">${lastSeen}</td>
-          </tr>
-          <tr id="fw-detail-${w.tid}" style="display:none;background:#f8fafc">
-            <td colspan="12" style="padding:0">${_fwBuildWorkerDetail(w, selectedFloorsSorted, PLANNED_S)}</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
-    </table>
-    </div>`;
-}
-
-function fwToggleWorkerDetail(tid) {
-  const row = document.getElementById('fw-detail-' + tid);
-  if (row) row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-}
-
-function _fwBuildWorkerDetail(w, selectedFloors, PLANNED_S) {
-  const sessions = w.sessionsDetail || [];
-  if (sessions.length === 0) {
-    return `<div style="padding:14px 20px;color:var(--muted);font-size:12px">No session detail available for this worker.</div>`;
-  }
-  const untracked = Math.max(0, PLANNED_S - (w.active||0) - (w.transit||0) - (w.inactive||0));
-  const flSet = new Set(selectedFloors.map(Number));
-
-  const rows = sessions.map(s => {
-    const isOnSelectedFloor = s.fl !== undefined && flSet.has(Number(s.fl));
-    const rowBg = isOnSelectedFloor ? '#f0fdf4' : '#fafafa';
-    const rowBorder = isOnSelectedFloor ? '#dcfce7' : '#f0f0f0';
-    const flLabel = s.fl !== undefined ? 'FL' + s.fl : '—';
-    const highlight = isOnSelectedFloor ? `<span style="background:#0d5c36;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px">✓ Selected</span>` : '';
-    return `<tr style="background:${rowBg};border-bottom:1px solid ${rowBorder}">
-      <td style="padding:5px 10px;font-weight:600;color:#16a34a">▶ Active</td>
-      <td style="padding:5px 10px">${s.start||'—'}</td>
-      <td style="padding:5px 10px">${s.end||'—'}</td>
-      <td style="padding:5px 10px;font-weight:700">${fmtHrs(s.dur||0)}</td>
-      <td style="padding:5px 10px">${flLabel}${highlight}</td>
-    </tr>`;
-  }).join('');
-
-  return `<div style="padding:14px 20px">
-    <div style="font-size:11px;font-weight:700;color:var(--dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">
-      ${w.tid} · ${w.formen||'—'} · ${sessions.length} session${sessions.length!==1?'s':''}
-    </div>
-    <table style="width:100%;font-size:11px;border-collapse:collapse">
-      <thead><tr style="border-bottom:1px solid var(--border)">
-        <th style="padding:5px 10px;text-align:left;color:var(--muted)">Type</th>
-        <th style="padding:5px 10px;text-align:left;color:var(--muted)">Start</th>
-        <th style="padding:5px 10px;text-align:left;color:var(--muted)">End</th>
-        <th style="padding:5px 10px;text-align:left;color:var(--muted)">Duration</th>
-        <th style="padding:5px 10px;text-align:left;color:var(--muted)">Floor</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div style="margin-top:10px;padding:8px 10px;background:#e8f3ec;border-radius:6px;font-size:11px;color:#0d3d27">
-      <strong>Worker Summary:</strong>
-      Active: ${fmtHrs(w.active||0)} ·
-      Transit: ${fmtHrs(w.transit||0)} ·
-      Idle: ${fmtHrs(w.inactive||0)} ·
-      Untracked: ${fmtHrs(untracked)} ·
-      Efficiency: <strong>${w.eff !== undefined && w.eff !== null ? w.eff+'%' : '—'}</strong> ·
-      Floors visited: ${(w.floors||[]).slice().sort((a,b)=>Number(a)-Number(b)).map(f=>'FL'+f).join(', ')||'—'}
-    </div>
-  </div>`;
-}
-
-// ── 7-DAY TREND CHART ──────────────────────────────────────────────────────
-const FW_FLOOR_COLORS = [
-  '#0d5c36','#2a7a52','#16a34a','#d97706','#dc2626',
-  '#8b6914','#0284c7','#7c3aed','#db2777','#059669',
-  '#ea580c','#4338ca','#be123c','#047857','#b45309'
-];
-
-async function fwLoadTrendChart() {
-  if (_fwSelectedFloors.size === 0) {
-    alert('Please select at least one floor and click Apply first.');
-    return;
-  }
-
-  const btn    = document.getElementById('fw-trend-btn');
-  const status = document.getElementById('fw-trend-status');
-  const body   = document.getElementById('fw-trend-body');
-
-  btn.disabled = true;
-  btn.textContent = '⏳ Loading…';
-
-  const headers = { 'Accept': 'application/json' };
-  if (CFG && CFG.auth) headers['Authorization'] = CFG.auth;
-  const base = (CFG && CFG.url) ? CFG.url.split('?')[0] : '';
-
-  if (!base) {
-    body.innerHTML = '<span style="color:#dc2626;font-size:12px">API URL not configured — check Admin → API Config.</span>';
-    btn.disabled = false; btn.textContent = 'Load 7-Day Chart';
-    return;
-  }
-
-  // Build the 7-day window bounds (same as buildURLCandidates "week" span)
-  const today = getShiftDayBounds(0);
-  const weekStart = getShiftDayBounds(6);
-  const weekFrom  = weekStart.from;
-  const weekUntil = today.until;
-
-  // Build day windows for labelling (oldest→newest, i=6 down to 0)
-  const dayWindows = [];
-  for (let i = 6; i >= 0; i--) {
-    const b = getShiftDayBounds(i);
-    const label = new Date(b.from * 1000).toLocaleDateString('en-GB', {
-      timeZone: 'Asia/Dubai', weekday: 'short', day: 'numeric', month: 'short'
-    });
-    dayWindows.push({ from: b.from, until: b.until, label });
-  }
-
-  status.textContent = 'Fetching…';
-
-  // Single bulk call for the full 7-day window — mirrors what buildURLCandidates does.
-  // This is the same strategy the main dashboard uses, avoiding 7 separate round-trips.
-  const candidates = [
-    `${base}?from=${weekFrom}&until=${weekUntil}`,
-    `${base}?startDate=${weekFrom}&endDate=${weekUntil}`,
-    `${base}?start=${weekFrom}&end=${weekUntil}`,
-    `${base}?dateFrom=${weekFrom}&dateTo=${weekUntil}`,
-    base,
-  ];
-
-  let allRecords = null;
-  for (const url of candidates) {
-    try {
-      const res = await fetch(url, { headers, signal: AbortSignal.timeout(25000) });
-      if (!res.ok) continue;
-      const raw = await res.json();
-      const recs = extractRecords(raw);
-      if (recs.length > 0) { allRecords = recs; break; }
-    } catch(e) {
-      console.warn('[FW trend] bulk fetch failed:', e.message);
-    }
-  }
-
-  btn.disabled = false;
-  btn.textContent = 'Reload Chart';
-
-  if (!allRecords || allRecords.length === 0) {
-    status.textContent = 'No data returned';
-    body.innerHTML = '<span style="color:var(--muted);font-size:12px">API returned no records for the last 7 days.</span>';
-    return;
-  }
-
-  // Resolve the start-time field name from the first record that has one
-  const fm = CFG.fm || {};
-  const startFields = [fm.start, 'start_time','StartTime','startTime','startDate','start','from','session_start'].filter(Boolean);
-
-  // Bucket records into day windows by matching their start timestamp
-  const results = dayWindows.map(win => {
-    const dayRecs = allRecords.filter(r => {
-      const startVal = mapField(r, startFields);
-      if (startVal === null || startVal === undefined) return false;
-      let ts;
-      if (typeof startVal === 'number') {
-        ts = startVal > 1e10 ? Math.floor(startVal / 1000) : startVal; // handle ms vs s
-      } else {
-        const num = Number(startVal);
-        ts = isNaN(num) ? Math.floor(new Date(startVal).getTime() / 1000) : (num > 1e10 ? Math.floor(num / 1000) : num);
-      }
-      return ts >= win.from && ts <= win.until;
-    });
-    return dayRecs.length > 0 ? _fwCountWorkersPerFloor(dayRecs) : null;
-  });
-
-  const daysWithData = results.filter(r => r !== null).length;
-  status.textContent = `${daysWithData}/7 days have data`;
-
-  _fwRenderTrendChart(dayWindows.map(w => w.label), results);
-}
-
-// Lightweight: from raw records, count unique workers per floor without full processRecords.
-// Uses the same mapField() + CFG.fm field candidates as processRecords() so field names always match.
-function _fwCountWorkersPerFloor(records) {
-  const fm = CFG.fm || {};
-  const tidFields   = ['tid','Tid', fm.tid,   'token_id','tokenId','token','TagId','tag_id','session_id','sessionId'];
-  const floorFields = ['floor_id','Floor_id', fm.floor, 'floorId','floor','level','Floor','FloorId'];
-
-  const floorWorkers = {};
-  records.forEach(r => {
-    const tid = String(mapField(r, tidFields)   || '').trim();
-    const fl  =       mapField(r, floorFields);
-    if (!tid || tid === '?' || fl === null || fl === undefined) return;
-    const flNum = Number(fl);
-    if (isNaN(flNum)) return;
-    if (!floorWorkers[flNum]) floorWorkers[flNum] = new Set();
-    floorWorkers[flNum].add(tid);
-  });
-
-  const counts = {};
-  Object.entries(floorWorkers).forEach(([fl, set]) => { counts[Number(fl)] = set.size; });
-  return counts;
-}
-
-function _fwRenderTrendChart(labels, results) {
-  const body = document.getElementById('fw-trend-body');
-  destroyChart('fw-trend-chart');
-
-  // Build canvas
-  body.innerHTML = '<canvas id="fw-trend-chart" style="width:100%;height:100%"></canvas>';
-  const ctx = document.getElementById('fw-trend-chart').getContext('2d');
-
-  const selectedFloors = [..._fwSelectedFloors].sort((a, b) => a - b);
-
-  const datasets = selectedFloors.map((fl, idx) => {
-    const color = FW_FLOOR_COLORS[idx % FW_FLOOR_COLORS.length];
-    const data  = results.map(dayResult => {
-      if (dayResult === null) return null; // gap
-      return dayResult[fl] || 0;
-    });
-    return {
-      label: 'FL' + fl,
-      data,
-      borderColor: color,
-      backgroundColor: color + '22',
-      fill: selectedFloors.length === 1, // fill only when single floor
-      tension: 0.35,
-      pointRadius: 5,
-      pointHoverRadius: 7,
-      pointBackgroundColor: color,
-      spanGaps: true,
-    };
-  });
-
-  charts['fw-trend-chart'] = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: { font: { size: 11 }, boxWidth: 14, padding: 16 }
-        },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              const v = ctx.parsed.y;
-              return ` FL${ctx.dataset.label.replace('FL','')} · ${v !== null ? v + ' worker' + (v!==1?'s':'') : 'no data'}`;
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: { color: '#f0ede8' },
-          ticks: { font: { size: 11 }, color: '#7a9882' }
-        },
-        y: {
-          beginAtZero: true,
-          grid: { color: '#f0ede8' },
-          ticks: {
-            font: { size: 11 }, color: '#7a9882',
-            stepSize: 1,
-            callback: v => Number.isInteger(v) ? v : ''
-          },
-          title: { display: true, text: 'Unique Workers', font: { size: 11 }, color: '#7a9882' }
-        }
-      }
-    }
-  });
-}
-
-function exportFloorWorkersCSV() {
-  if (!_fwWorkers.length) { alert('Apply floor filter first.'); return; }
-  const PLANNED_S = getEffectivePlannedS();
-  const selectedFloors = [..._fwSelectedFloors].sort((a,b)=>a-b).map(f=>'FL'+f).join('+');
-  const headers = ['Token ID','Foreman','Division','Sessions','All Floors','Active (hrs)','Transit (hrs)','Idle (hrs)','Untracked (hrs)','Efficiency %'];
-  const rows = _fwWorkers.map(w => {
-    const untracked = Math.max(0, PLANNED_S - (w.active||0) - (w.transit||0) - (w.inactive||0));
-    const floorList = (w.floors||[]).slice().sort((a,b)=>Number(a)-Number(b)).map(f=>'FL'+f).join(' ');
-    return [
-      w.tid,
-      w.formen||'',
-      w.div||w.division||'',
-      w.sessions||0,
-      '"'+floorList+'"',
-      (Math.round((w.active||0)/360)/10).toFixed(1),
-      (Math.round((w.transit||0)/360)/10).toFixed(1),
-      (Math.round((w.inactive||0)/360)/10).toFixed(1),
-      (Math.round(untracked/360)/10).toFixed(1),
-      w.eff !== undefined && w.eff !== null ? w.eff : ''
-    ].join(',');
-  });
-  const csv = [headers.join(','), ...rows].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `floor-workers-${selectedFloors}-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-}
-</script>
-
 <!-- PAGE: IDLE DIAGNOSTIC (hidden) -->
 <section class="page" id="page-idle-diag" style="display:none!important">
   <div class="page-header">
@@ -4457,6 +3794,7 @@ function exportFloorWorkersCSV() {
       <div class="section-title">API Configuration</div>
       <div class="form-group"><label>API Endpoint URL</label><input type="text" id="cfg-url" value="https://api-server-sls-sobha.tokenme.net/api/v2/tokens/TokensMovement"></div>
       <div class="form-group"><label>Authorization Header (leave blank if none)</label><input type="text" id="cfg-auth" placeholder="Bearer token or API key"></div>
+      <div class="form-group"><label>Dotnet API Base URL <span style="font-weight:400;color:var(--muted)">(Token registry — for Total Assigned Tokens count)</span></label><input type="text" id="cfg-dotnet-url" value="https://api-server-dotnet-sobha.tokenme.net"></div>
       <div class="form-row">
         <div class="form-group"><label>Refresh Interval (seconds)</label><input type="number" id="cfg-interval" value="30" min="10"></div>
         <div class="form-group"><label>Minimum Gap Threshold (seconds)</label><input type="number" id="cfg-idle" value="15" min="5"><small style="color:var(--muted)">Gaps shorter than this are ignored (signal noise)</small></div>
@@ -4738,59 +4076,44 @@ function getTokenProfile(tid) {
 // Fields: r=role, c=contractor/sub-contractor, cat=category/trade, n=name, div=division (Finishing/Facade)
 // This is the authoritative assigned-token list — updated from Excel V2 (18 Apr 2026).
 // Merged with TOKEN_REGISTRY for enriched profiles.
-// Total: 622 tokens (legacy snapshot — authoritative source is now TokensProfiles API)
-// V2.4.4: PROFILES_DICT takes priority; EXCEL_REGISTRY used only as offline fallback.
+// Total: 622 tokens · FD Division: 460 · Facade: 144 · TokenMe: 7
 // eslint-disable-next-line
 const EXCEL_REGISTRY = {"t-6a9b":{"r":"Supervisor","c":"TokenMe","cat":"TokenMe","n":"Hans2","div":"TokenMe"},"t-704c":{"r":"Supervisor","c":"Nidheesh Kannath","cat":"Mason - Tile","n":"Binod Sahani Bhagirathi Sahani","div":"FD Division","status":"Active"},"t-8807":{"r":"Supervisor","c":"Nidheesh Kannath","cat":"Mason - Tile","n":"Sonu","div":"FD Division","status":"Active"},"t-7305":{"r":"Supervisor","c":"Nidheesh Kannath","cat":"Mason - Tile","n":"SHAILESH CHAUHAN RAJENDRA PRASAD","div":"FD Division","status":"Active"},"t-6a1d":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Tile","n":"Hareram Prasad Satyanarayan Sah","div":"FD Division","status":"Active"},"t-055d":{"r":"Supervisor","c":"Nidheesh Kannath","cat":"Mason - Tile","n":"Banka Singh Motilal Singh","div":"FD Division","status":"Active"},"t-6850":{"r":"Supervisor","c":"Nidheesh Kannath","cat":"Mason - Silicon","n":"Sarvan Kumar Thakur Shivji Thakur","div":"FD Division"},"t-85cd":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Tile","n":"Shyam Sundar Yadav Jokhu Yadav","div":"FD Division","status":"Active"},"t-6921":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Tile","n":"Nemi Chand Mohanpuria Bhanwar Lal","div":"FD Division","status":"Active"},"t-605a":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Tile","n":"Rajveer Sahani Krishnamurari","div":"FD Division","status":"Active"},"t-831d":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Tile","n":"Amit Kumar Banshilal ","div":"FD Division"},"t-60b4":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Tile","n":"Prem Chand Arjun Chandra ","div":"FD Division"},"t-70df":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Grout","n":"Ramesh Kumar Tharu","div":"FD Division","status":"Active"},"t-8168":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Tile","n":"Munil Kumar Bhikhari","div":"FD Division","status":"Active"},"t-60d8":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Tile","n":"Amit Dasadhikary Gobinda Dasadhikary","div":"FD Division","status":"Active"},"t-6ab4":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Tile","n":"Vikki Chauhan Ramesh Chauhan","div":"FD Division","status":"Active"},"t-8717":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Silicon","n":"Prem Prakash Sharma Krishnanand Sharma","div":"FD Division","status":"Active"},"t-70e1":{"r":"Supervisor","c":"Jathin Raj","cat":"Mason - Tile","n":"Rajan Chauhan Ram Shoch Chauhan ","div":"FD Division"},"t-66e9":{"r":"Supervisor","c":"Jathin Raj","cat":"Helper - Tile","n":"Manu Sadhan Lal","div":"FD Division","status":"Active"},"t-aaa9":{"r":"Supervisor","c":"TokenMe","cat":"TokenMe","n":"Hans3","div":"TokenMe"},"t-12a5":{"r":"Supervisor","c":"Amit Charghand","cat":"Chargehand - General","n":"Amit Kumar Birendra Prasad","div":"Facade","status":"Active"},"t-129f":{"r":"Supervisor","c":"Md Fazlul Hoque ","cat":"Semi Fitter","n":"Dhanu Kumar Gupta Ashok Kumar Gupta","div":"Facade","status":"Active"},"t-12d6":{"r":"Supervisor","c":"Vineesh Sameer Shaik","cat":"chargehand","n":"Sameer Shaik Alee Shaik","div":"Facade","status":"Active"},"t-1328":{"r":"Supervisor","c":"Bikash ","cat":"chargehand","n":"Sameer Mohammad ","div":"Facade","status":"Active"},"t-1303":{"r":"Supervisor","c":"Vineesh Umesh Prasad","cat":"chargehand","n":"Umesh Prasad Mallah Shiv Prasad Mallah","div":"Facade","status":"Active"},"t-11b3":{"r":"Supervisor","c":"Vineesh Divas","cat":"chargehand","n":"Divas Kumar Rakesh Chudhari","div":"Facade","status":"Active"},"t-1138":{"r":"Supervisor","c":"Ravindra","cat":"chargehand","n":"Babloo Paswan Krishna Paswan","div":"Facade","status":"Active"},"t-1131":{"r":"Supervisor","c":"Babu Rajan","cat":"chargehand","n":"Binod Chaudhari Angrahit Chaudhari","div":"Facade","status":"Active"},"t-12b7":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Md Mustak Md Atabul","div":"FD Division","status":"Active"},"t-679d":{"r":"Worker","c":"Sobha","cat":"Sobha management ","n":"","div":""},"t-1000":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Govind Kumar Sumer Prasad","div":"FD Division","status":"Active"},"t-73ca":{"r":"Worker","c":"TokenMe","cat":"TokenMe","n":"","div":"TokenMe"},"t-6605":{"r":"Worker","c":"TokenMe","cat":"TokenMe","n":"","div":"TokenMe"},"t-12b6":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Helper - Painter","n":"Mahesh Kumar Dwarika Prasad","div":"FD Division","status":"Active"},"t-12ba":{"r":"Worker","c":"Babu Rajan","cat":"Fabricator","n":"Pintoo Rajbhar Ram ","div":"Facade","status":"Pending"},"t-04a3":{"r":"Worker","c":"TokenMe","cat":"TokenMe","n":"Hans2","div":"TokenMe"},"t-8774":{"r":"Worker","c":"Sobha","cat":"Safety","n":"Safety 2","div":""},"t-8760":{"r":"Worker","c":"Sobha","cat":"Safety","n":"Safety 3","div":""},"t-876d":{"r":"Worker","c":"Sobha","cat":"Safety","n":"Safety 4","div":""},"t-8768":{"r":"Worker","c":"Sobha","cat":"Safety","n":"Safety 5","div":""},"t-85ec":{"r":"Worker","c":"TokenMe","cat":"TokenMe","n":"Ali","div":"TokenMe"},"t-729c":{"r":"Worker","c":"Sobha","cat":"TokenMe","n":"Kallu","div":""},"t-85c2":{"r":"Worker","c":"Jathin Raj","cat":"L-F-T","n":"Arnis","div":"FD Division"},"t-85ef":{"r":"Worker","c":"Jathin Raj","cat":"L-F-T","n":"Faruk","div":"FD Division"},"t-6011":{"r":"Worker","c":"Nidheesh Kannath","cat":"L-W-T","n":"Rojid","div":"FD Division"},"t-71e7":{"r":"Worker","c":"Jathin Raj","cat":"L-W-T","n":"Safiaktar","div":"FD Division"},"t-85da":{"r":"Worker","c":"Jathin Raj","cat":"L-W-T","n":"Nasimalam","div":"FD Division"},"t-72e1":{"r":"Worker","c":"Jathin Raj","cat":"L-F-T","n":"Nikhil","div":"FD Division"},"t-8150":{"r":"Worker","c":"Jathin Raj","cat":"L-F-T","n":"Binod","div":"FD Division"},"t-73aa":{"r":"Worker","c":"Nidheesh Kannath","cat":"L-W-T","n":"Sanobar","div":"FD Division"},"t-85d6":{"r":"Worker","c":"Jathin Raj","cat":"L-W-T","n":"Imran","div":"FD Division"},"t-85ee":{"r":"Worker","c":"Nidheesh Kannath","cat":"L-W-T","n":"Rahumath","div":"FD Division"},"t-721a":{"r":"Worker","c":"TokenMe","cat":"TokenMe","n":"Hans","div":"TokenMe"},"t-85f0":{"r":"Worker","c":"Sobha","cat":"TokenMe","n":"Anees","div":""},"t-12b4":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Painter","n":"Mohammed Nawab Mohammed Safi","div":"FD Division","status":"Active"},"t-1299":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"BINAY KUMAR PANDIT DEVENDRA PANDIT","div":"FD Division","status":"Active"},"t-1424":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Painter","n":"Daud Ibrahim Muziboor Rahman","div":"FD Division","status":"Active"},"t-1423":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason","n":"Mohammad Bablu Shekh Naimuddin ","div":""},"t-141c":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Mukesh Kumar Bhagwandeen","div":"FD Division","status":"Active"},"t-1415":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Helper - Painter","n":"Latif Shorafot Ali","div":"FD Division","status":"Active"},"t-1413":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Painter","n":"Hasan Miyan Haidar Miyan","div":"FD Division","status":"Active"},"t-1443":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Om Prakash Nishad Bhulan Nishad","div":"FD Division","status":"Active"},"t-8773":{"r":"Worker","c":"Sobha","cat":"Safety","n":"Safety 1","div":""},"t-1442":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"FIROZ KHAN KASEEM ALI","div":"FD Division","status":"Active"},"t-143f":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Painter","n":"Abdul Karim Majeed","div":"FD Division","status":"Active"},"t-11d6":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Maison","n":"Razzak ansari","div":"FD Division"},"t-12e1":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Mason - Tile","n":"Digri Pandit Baliram Pandit","div":"FD Division","status":"Active"},"t-143d":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Ramashish Nishad Rajendra Nishad","div":"FD Division","status":"Active"},"t-11ce":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Scrred Maison","n":"Naseem alam","div":"FD Division"},"t-143b":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Arjun Verma Ram Newas Verma","div":"FD Division","status":"Active"},"t-1029":{"r":"Worker","c":"Vineesh Umesh Prasad","cat":"Semi Fitter","n":"Durgesh Gupta Mahesh Gupta","div":"Facade","status":"Active"},"t-1051":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Polisher","n":"Chandra Kesh Nagge Lal","div":"FD Division","status":"Active"},"t-1053":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Tile maison","n":"Bhawandeep","div":"FD Division"},"t-147c":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Dinesh Kumar Chauhan Girdharilal","div":"FD Division","status":"Active"},"t-1450":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Arbaz Mohammad Noor Muhammad","div":"FD Division","status":"Active"},"t-1437":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Tile","n":"Ram Vijay Chauhan Shyamsundar Chauhan ","div":"FD Division","status":"Active"},"t-1436":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Mohammad Nasim Muhammad Ayub","div":"FD Division","status":"Active"},"t-1224":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Carpenter","n":"Hasyanyn","div":"FD Division"},"t-138e":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Hoist Operator","n":"Sukh Ram Bharati Amarjeet","div":"FD Division"},"t-1257":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Silicon","n":"Shahid Ali Khan Lalmohamad Khan","div":"FD Division"},"t-1211":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Silicon","n":"Ganesh Yadav Sarvajeet Yadav","div":"FD Division"},"t-1060":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Mason - Tile","n":"Krishna Yadav Jagdeesh Yadav","div":"FD Division","status":"Active"},"t-105f":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Mason - Tile","n":"Ajay Kumar Ganga Ram","div":"FD Division","status":"Active"},"t-107f":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Semi Fitter","n":"Ajay Yadav Suresh Yadav","div":"Facade","status":"Active"},"t-1065":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Helper","n":"Kamlakant Sah Gangasagar Sah","div":"Facade","status":"Pending"},"t-105e":{"r":"Worker","c":"Babu Rajan","cat":"Semi Fitter","n":"Md Azam","div":"Facade","status":"Active"},"t-105d":{"r":"Worker","c":"Vineesh Raj Kumar","cat":"Fitter","n":"Rakesh Sahani Shambhu Sahani","div":"Facade","status":"Active"},"t-1492":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Hakeem Ansari Mohammad Alauddin Ansari","div":"FD Division","status":"Active"},"t-105b":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Semi Fitter","n":"Deepak Bind Ram Indar Bind","div":"Facade","status":"Active"},"t-1061":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Helper - Gypsum","n":"Munna Chauhan Madan Mahto","div":"FD Division","status":"Active"},"t-1082":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Harendra Chauhan Ramkrit Chauhan","div":"FD Division","status":"Active"},"t-1062":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Atitullah Ansari Usman","div":"FD Division","status":"Active"},"t-1055":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Suresh Kumar Bairwa Ranglal Bairwa","div":"FD Division","status":"Active"},"t-1059":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Grout","n":"Mukesh Kumar Meghawal Likhma Ram Meghawal","div":"FD Division","status":"Active"},"t-1058":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Grout","n":"Ram Gopal Muse","div":"FD Division","status":"Active"},"t-14a0":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Helper - Painter","n":"Eshwar Singh Prathavi Singh","div":"FD Division","status":"Active"},"t-1480":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Rajit Ram Verma Mahadeo Prasad Verma","div":"FD Division","status":"Active"},"t-1440":{"r":"Worker","c":"Sukdeb Biswas","cat":"Painter","n":"Jiaul Hak Idrish Ansari","div":"FD Division","status":"Active"},"t-1430":{"r":"Worker","c":"Sukdeb Biswas","cat":"Epoxy - Painter","n":"Janir Alam Mukhtar Miyan","div":"FD Division","status":"Active"},"t-148c":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Ravi Kishan Yadav Rajnet Yadav","div":"FD Division","status":"Active"},"t-1419":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Munna Paswan Bahti Paswan","div":"FD Division","status":"Active"},"t-1083":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Ram Pal Yamuna Chauhan","div":"FD Division","status":"Active"},"t-1073":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Polisher","n":"Akhilesh Kumar Jai Prakash Bharti","div":"FD Division","status":"Active"},"t-10a4":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Carpenter joinery","n":"Anjesh kumar","div":"FD Division"},"t-147e":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Taiyab Ali Atahar Ali","div":"FD Division","status":"Active"},"t-1086":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Helper","n":"Krishna Sarki","div":"FD Division","status":"Active"},"t-1087":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Helper","n":"Achchhelal Sharma Bhigurashan Sharma","div":"FD Division"},"t-10a8":{"r":"Worker","c":"Jathin Raj","cat":"Helper - Tile","n":"Mohammad Rajon Anchar Ali Anchar Ali","div":"FD Division","status":"Active"},"t-10a5":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Grout","n":"Dinesh Prajapat Jagdish Prajapat","div":"FD Division","status":"Active"},"t-109e":{"r":"Worker","c":"Nidheesh Kannath","cat":"Joinery Carpenter","n":"Pankaj Kumar Sharma Rajendra Sharma","div":"FD Division","status":"Active"},"t-109b":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Tile","n":"Shanker Lal Meghwal Nema Ram Meghwal","div":"FD Division","status":"Active"},"t-147b":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Painter","n":"Asif Mohammed Shabbir","div":"FD Division","status":"Active"},"t-10b2":{"r":"Worker","c":"Vineesh Raj Kumar","cat":"Helper","n":"Md Hafiz Akbar Miya  ","div":"Facade","status":"Pending"},"t-10b1":{"r":"Worker","c":"Vineesh Umesh Prasad","cat":"Helper","n":"Neeraj Kumar Dhanesh Singh","div":"Facade","status":"Pending"},"t-10af":{"r":"Worker","c":"Bikash ","cat":"Aluminium  Fitter","n":"Govind K umar","div":"Facade","status":"Active"},"t-1474":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"REZAULLAH MD FIROJ","div":"FD Division","status":"Active"},"t-10ac":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Mintoo Singh Vijay Bhadur Singh ","div":"Facade","status":"Pending"},"t-14a2":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Helper - Painter","n":"Manish Yadav","div":"FD Division","status":"Active"},"t-149f":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"SHAM PRASAD RAJESH PRASAD","div":"FD Division","status":"Active"},"t-149e":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Gypsum - Carpenter ","n":"Shivam Gupta Durga Prasad Gupta","div":"FD Division","status":"Active"},"t-149b":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Painter","n":"Bhim Yadav Ramdev Yadav","div":"FD Division","status":"Active"},"t-10aa":{"r":"Worker","c":"Vineesh Sameer Shaik","cat":"Helper","n":"Rustam Ansari Sabir Ali","div":"Facade","status":"Pending"},"t-1034":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Chargehand - Easy Wall Panel","n":"Vijay Kumar Chauhan Hriday Ram","div":"FD Division"},"t-10a1":{"r":"Worker","c":"Ravindra","cat":"Semi Fitter","n":"Shahid Ansari","div":"Facade","status":"Active"},"t-10a0":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Semi Fitter","n":"Ajay Kumar Subhash Chand","div":"Facade","status":"Active"},"t-109f":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Ratan Gond Bharat Gond","div":"Facade","status":"Active"},"t-1472":{"r":"Worker","c":"Sukdeb Biswas","cat":"Epoxy - Painter","n":"Imran Ali Mokhtar Ali","div":"FD Division","status":"Active"},"t-1499":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Sonu Kumar Lalta Prasad","div":"FD Division","status":"Active"},"t-1088":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Sandeep Sharma Chandrashekhar Sharma","div":"FD Division","status":"Active"},"t-1438":{"r":"Worker","c":"Vijay Surya Kasinathan","cat":"Scaffolder","n":"Nitesh Kumar Singh Uma Nath Singh","div":"FD Division"},"t-109d":{"r":"Worker","c":"Vineesh Raj Kumar","cat":"Semi Fitter","n":"Sunil Kumar Kashi Nath Singh","div":"Facade","status":"Active"},"t-1098":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Rajendra Ram Chandra","div":"Facade","status":"Active"},"t-10a6":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Tile maison","n":"Naveed Hussain","div":"FD Division"},"t-1097":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Ranjay Ram Dasai Ram","div":"Facade","status":"Active"},"t-108e":{"r":"Worker","c":"Vineesh Raj Kumar","cat":"Semi Fitter","n":"Diwakar Chudhary Surendra Nath Chudhary","div":"Facade","status":"Active"},"t-10e1":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery carpenter","n":"Muhammad javed","div":"FD Division"},"t-10b7":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Tile","n":"Ajay Mandal ","div":"FD Division"},"t-10c2":{"r":"Worker","c":"Babu Rajan","cat":"Fitter","n":"Ashok Kumar Singh Keshav Prasad Singh","div":"Facade","status":"Active"},"t-14a9":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Pinku Rajak Rajesh Rajak","div":"FD Division","status":"Active"},"t-10bc":{"r":"Worker","c":"Bikash ","cat":"Fitter","n":"Chandan Chaudhari Vijay Shankar Chaudhari","div":"Facade","status":"Active"},"t-12cf":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Parwej Alam Abdul Khair","div":"FD Division","status":"Active"},"t-1484":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Helper - Painter","n":"Md Nigare Parvez Alam","div":"FD Division","status":"Active"},"t-10b4":{"r":"Worker","c":"Vineesh Raj Kumar","cat":"Semi Fitter","n":"Bikash Kumar Ram Rajesh Kumar Ram","div":"Facade","status":"Active"},"t-10b6":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Raj Man Shree Prakash","div":"FD Division","status":"Active"},"t-10e2":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Ankit Singh Jarnail Singh","div":"FD Division","status":"Active"},"t-10e0":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Virendra Chauhan Kamlesh Chauhan","div":"FD Division","status":"Active"},"t-10cb":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Acting Chargehand - Screed","n":"RANA PRATAP DAS BITISH RAM","div":"FD Division"},"t-1247":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Nasim Alam Saheb Husain","div":"FD Division"},"t-8160":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Junior Foreman - Screed","n":"Abhisheak Kumar Motilal Pal","div":"FD Division","status":"Active"},"t-106b":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Vijay Kumar  Ram Sangam","div":"FD Division","status":"Active"},"t-1358":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Mason - Tile","n":"Indrajeet Chauhan Mannu Chauhan","div":"FD Division","status":"Active"},"t-108f":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Mason - Tile","n":"Sachin Kumar Mahato Dewlal Mahato","div":"FD Division","status":"Active"},"t-1353":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Mason - Silicon","n":"Hardev Singh Pargat Singh","div":"FD Division"},"t-10f3":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery","n":"Sk sabhaj","div":"FD Division"},"t-10e7":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Carpenter joinery","n":"Ayaz ahmed","div":"FD Division"},"t-10e9":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Carpenter joinery","n":"Dhanu kumar","div":"FD Division"},"t-10fe":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Carpenter joinery","n":"Mukesh shrama","div":"FD Division"},"t-10eb":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Polisher","n":"Ram Kishore","div":"FD Division"},"t-10fa":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery","n":"Alijaan","div":"FD Division"},"t-102c":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Grout","n":"Jakav Masih Jagir Masih","div":"FD Division","status":"Active"},"t-1052":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Akhilesh Chauhan Dhanesh Chauhan","div":"FD Division","status":"Active"},"t-10a7":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Monu Ram Kewal","div":"FD Division","status":"Active"},"t-10a3":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Karamuddeen Abadali","div":"FD Division","status":"Active"},"t-109c":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Rampratap Prasad Munnar Prasad","div":"FD Division","status":"Active"},"t-1426":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Jagdish Kumar Rajbhar Bhuedhar Rajbhar","div":"FD Division","status":"Active"},"t-10f2":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Amresh sharma","div":"FD Division"},"t-10ed":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Waterprofing","n":"Radhesham yadav","div":"FD Division"},"t-10f9":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Helper","n":"Pankaj kumar chaursia","div":"FD Division"},"t-10f7":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Maison","n":"Gupteshwar singh","div":"FD Division"},"t-1099":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Satendra Kumar Prajapati Ram Waqeel","div":"FD Division","status":"Active"},"t-112d":{"r":"Worker","c":"Vineesh Sameer Shaik","cat":"Helper","n":"Sandip Kumar Rajendra Prasad","div":"Facade","status":"Pending"},"t-1121":{"r":"Worker","c":"Babu Rajan","cat":"Fitter","n":"Jitendra Kumar Gupta Munni Lal Gupta","div":"Facade","status":"Active"},"t-1054":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Helper - Gypsum","n":"Lovepreet Singh Manjeet Singh","div":"FD Division","status":"Active"},"t-1093":{"r":"Worker","c":"Jathin Raj","cat":"Helper - Tile","n":"Anam Ansari Basir Ansari","div":"FD Division","status":"Active"},"t-1090":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Umesh Chaudharay","div":"FD Division","status":"Active"},"t-108a":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Guddu Chauhan Bhola Chauhan","div":"FD Division","status":"Active"},"t-12db":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Grout","n":"Mukesh Kumar Bairwa Bhag Chand Bairwa","div":"FD Division","status":"Active"},"t-134e":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Rishikesh Nisad Lal Bachan Nishad","div":"FD Division","status":"Active"},"t-13b2":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Grout","n":"Dalbir Singh Gurmukh Singh","div":"FD Division","status":"Active"},"t-12f4":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Silicon","n":"Ganesh Yadav Sarvajeet Yadav","div":"FD Division"},"t-12e4":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Deepak Ramkaran Chauhan","div":"FD Division","status":"Active"},"t-114f":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Helper - Screed","n":"Upendra Sah Teju Sah","div":"FD Division","status":"Active"},"t-114e":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Mason - Waterproof","n":"Lalman Rambali","div":"FD Division","status":"Active"},"t-1248":{"r":"Worker","c":"Jathin Raj","cat":"Helper - Tile","n":"Deepak KumarRam Surat","div":"FD Division","status":"Active"},"t-116a":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Aman Chaudhary Darash Ram Chaudhary","div":"FD Division","status":"Active"},"t-10b5":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Marble","n":"Mohammed Shakib Gos Mohammed Shekh","div":"FD Division","status":"Active"},"t-10b3":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Kanhaiyalal Nishad Narsingh Nishad","div":"FD Division","status":"Active"},"t-1092":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Vindeshwar Shiv Das","div":"FD Division","status":"Active"},"t-10fb":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Tile","n":"Suraj Kumar Ram Bhajan","div":"FD Division","status":"Active"},"t-12ee":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Grout","n":"Bachan Singh Bairwa Nandlal Bairwa","div":"FD Division","status":"Active"},"t-1422":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Painter","n":"Papal Kumar Nihora Manjhi","div":"FD Division","status":"Active"},"t-1487":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Mason","n":"Bahori Ahirwar Balua Ahirwar","div":"FD Division","status":"Active"},"t-14a1":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Mason - Eifs","n":"Ram Sagar Yadav","div":"FD Division","status":"Active"},"t-149d":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Painter","n":"Jawan Singh Dharam Singh","div":"FD Division","status":"Active"},"t-1495":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Painter","n":"Sanny Chaudhary Ramprit Chaudhary","div":"FD Division","status":"Active"},"t-12ae":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Helper - Painter","n":"Rakesh Manjhi Ramegya Manjhi","div":"FD Division","status":"Active"},"t-1420":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Kuldeep Singh Satpal Singh","div":"FD Division","status":"Active"},"t-1414":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Amrit Lal Shiv Lal","div":"FD Division","status":"Active"},"t-147f":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Akshay Kumar Ram Balistar Ram","div":"FD Division","status":"Active"},"t-147d":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Sunil Kumar Jagarnath","div":"FD Division","status":"Active"},"t-147a":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Bittu Kumar Dwarika Sah","div":"FD Division","status":"Active"},"t-1479":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Manoj Kumar Chandra Bhan","div":"FD Division","status":"Active"},"t-1477":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Deepu Kumar Patel Baijnath Patel","div":"FD Division","status":"Active"},"t-1475":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Chhotelal Prasad Jayashree Prasad","div":"FD Division","status":"Active"},"t-1497":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Ghanshyam Tharu","div":"FD Division","status":"Active"},"t-1494":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Subash Tharu","div":"FD Division","status":"Active"},"t-1493":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Mason - Pop","n":"MUNNI LAL PRASAD YOGENDRA MAHTO","div":"FD Division","status":"Active"},"t-10f1":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Raju Kumar Gupta Paras Gupta","div":"FD Division","status":"Active"},"t-10ef":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Polisher","n":"Din Dayal Ram Bilas","div":"FD Division","status":"Active"},"t-10ee":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Shivshankarar Thakur Viltu Thakur","div":"FD Division","status":"Active"},"t-10ec":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Polisher","n":"Sugriv Rai Ramdyal","div":"FD Division","status":"Active"},"t-10ea":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Dharmu Ram Chhotkun","div":"FD Division","status":"Active"},"t-10e6":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Polisher","n":"Ram Niwash Chauhan Sita Ram Chauhan","div":"FD Division","status":"Active"},"t-10e4":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Mo Sultan Ayaj Ahamad","div":"FD Division","status":"Active"},"t-11c8":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Mason - screed","n":"Anil Kumar Ram Umashankar Ram","div":"FD Division","status":"Active"},"t-1158":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Samsul Ansari Mahabub Ansari","div":"FD Division","status":"Active"},"t-11a7":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Kamlesh Mundrika","div":"FD Division","status":"Active"},"t-1245":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Sanjay Sharma Parash Sharma","div":"FD Division","status":"Active"},"t-1243":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Krishna Vishwakarma Jawahar Lal Vishwakarma","div":"FD Division","status":"Active"},"t-1240":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Tribhuwan Rajbhar Mahendra Rajbhar","div":"FD Division","status":"Active"},"t-12f3":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Satyendra Yadav Rajesh Yadav","div":"FD Division","status":"Active"},"t-12f1":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Mahavir Ram Hari Lal Ram","div":"FD Division","status":"Active"},"t-12ed":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Yusuf Nahar Ashok Kumar","div":"FD Division","status":"Active"},"t-11b0":{"r":"Worker","c":"Babu Rajan","cat":"Helper","n":"Tinku Kumar Kapil Ram","div":"Facade","status":"Pending"},"t-11ae":{"r":"Worker","c":"Bikash ","cat":"Aluminium Semi Fitter","n":"Khurshid Alam","div":"Facade","status":"Active"},"t-11ad":{"r":"Worker","c":"Babu Rajan","cat":"Semi Fitter","n":"Rajesh Rajbhar","div":"Facade","status":"Active"},"t-11ac":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Helper","n":"Kamlesh Kumar Nishad Mohan Lal Nishad","div":"Facade","status":"Pending"},"t-11ab":{"r":"Worker","c":"Bikash ","cat":"Fitter","n":"Manish Jay Narayan","div":"Facade","status":"Active"},"t-11aa":{"r":"Worker","c":"Vineesh Raj Kumar","cat":"Semi Fitter","n":"Dharmendra Chaurasiya Chhotelal Chaurasiya","div":"Facade","status":"Active"},"t-11a9":{"r":"Worker","c":"Vineesh Divas","cat":"Helper","n":"Shyam Kumar Thakur Arjun Thakur","div":"Facade","status":"Pending"},"t-11cc":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Mason - Pop","n":"Vimlesh Kumar Putti Lal","div":"FD Division","status":"Active"},"t-12ec":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Polisher","n":"Jogendra Gupta Vindeshwari Gupta","div":"FD Division","status":"Active"},"t-11bf":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Helper","n":"Baliram","div":"FD Division"},"t-14b4":{"r":"Worker","c":"Vijay Surya Kasinathan","cat":"Helper - Painter","n":"Kalu Kushi Ram","div":"FD Division","status":"Active"},"t-14b0":{"r":"Worker","c":"Vijay Surya Kasinathan","cat":"Carpenter","n":"Mohammad Samim Md Salim","div":"FD Division","status":"Active"},"t-141a":{"r":"Worker","c":"Babu Rajan","cat":"Semi Fitter","n":"Anup Gond Umashankar Gond","div":"Facade","status":"Active"},"t-11fc":{"r":"Worker","c":"Vineesh Sameer Shaik","cat":"Helper","n":"Mohammad Mehraj Khan Mohammad Abid Khan","div":"Facade","status":"Pending"},"t-11fb":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Munna Kumar Chowdhary Shiv Kumar Chowdhary","div":"Facade","status":"Active"},"t-11fa":{"r":"Worker","c":"Ravindra","cat":"Semi Fitter","n":"Virendra Kumar Lalta Prasad","div":"Facade","status":"Active"},"t-11f9":{"r":"Worker","c":"Babu Rajan","cat":"Helper","n":"Naresh Kumar Mahesh Ram ","div":"Facade","status":"Pending"},"t-11f7":{"r":"Worker","c":"Ravindra","cat":"Silicon Applicator","n":"Imran Mohammed","div":"Facade","status":"Pending"},"t-11f4":{"r":"Worker","c":"Vineesh Raj Kumar","cat":"Semi Fitter","n":"Munna Kushwaha Munib Kushwaha","div":"Facade","status":"Active"},"t-11d2":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Anil Kumar Kanhaiyalal","div":"FD Division","status":"Active"},"t-11c7":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Helper","n":"Shiv shankar yadav","div":"FD Division"},"t-11f3":{"r":"Worker","c":"Bikash ","cat":"Semi Fitter","n":"Sikandra Chauhan","div":"Facade","status":"Active"},"t-11ed":{"r":"Worker","c":"Vineesh Divas","cat":"Helper","n":"Subham Kharwar Pannalal Kharwar","div":"Facade","status":"Pending"},"t-11e7":{"r":"Worker","c":"Vineesh Sameer Shaik","cat":"Fitter","n":"Pintesh Kumar Pandey Yogendra Pandey ","div":"Facade","status":"Pending"},"t-11d1":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Sachin Kumar Kapildev","div":"FD Division","status":"Active"},"t-11d0":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Manoj Maurya Yogendra Prasad","div":"FD Division","status":"Active"},"t-11cf":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Salaman Baitha Subahan Baitha","div":"FD Division","status":"Active"},"t-11d4":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Torch applicartor","n":"Pramod kumar sharma","div":"FD Division"},"t-11ea":{"r":"Worker","c":"Bikash ","cat":"Helper","n":"Ram Ashish","div":"Facade","status":"Pending"},"t-11f6":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Carpenter - Ewp","n":"Radheshyam Yadav","div":"FD Division"},"t-11f2":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Carpenter - Screed","n":"Rahul Gautam Om Prakash","div":"FD Division","status":"Active"},"t-11e6":{"r":"Worker","c":"Vineesh Umesh Prasad","cat":"Helper","n":"Sanjay Munni Lal","div":"Facade","status":"Pending"},"t-11e5":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Semi Fitter","n":"Mohammad Rashid Abdul Hakim ","div":"Facade","status":"Pending"},"t-11d8":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Helper","n":"Rajesh Chauhan Vishram Chauhan","div":"Facade","status":"Pending"},"t-11db":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohammad Nasir Nisar Ahamad","div":"FD Division","status":"Active"},"t-122b":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Ajit Kumar Prajapati Om Prakash Prajapati","div":"FD Division","status":"Active"},"t-1225":{"r":"Worker","c":"Vijay Surya Kasinathan","cat":"Scaffolder","n":"Bitu Thakur Sukhal  ","div":"FD Division"},"t-1220":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Amit kumar","div":"FD Division"},"t-121f":{"r":"Worker","c":"Jathin Raj","cat":"Plan Grid Assistant","n":"Arjun Kumar Yadav Devendra Yadav","div":"FD Division"},"t-121b":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Deepak Gond Parikhan Gond","div":"FD Division"},"t-1219":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Vinod Gupta Ram Gopal Gupta","div":"FD Division"},"t-1218":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Rajan Chauhan Ram Shoch Chauhan ","div":"FD Division"},"t-1216":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Prem Chand Arjun Chandra ","div":"FD Division"},"t-1215":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Safi Akhtar Sahabjan","div":"FD Division"},"t-1214":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Faruk Khan Asraf Khan","div":"FD Division"},"t-1210":{"r":"Worker","c":"Jathin Raj","cat":"Plan Grid Assistant","n":"Abhimanyu Kumar Manoj Kumar Mehta","div":"FD Division"},"t-120f":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Silicon","n":"Irshad Ali Israyal Ali","div":"FD Division","status":"Active"},"t-120e":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Avnish Kumar Prajapati Ramlachhan Prajapati ","div":"FD Division"},"t-121c":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Helper","n":"Vikas Virendra Kumar","div":"FD Division"},"t-120c":{"r":"Worker","c":"Vineesh Umesh Prasad","cat":"Helper","n":"Hasmuddin Ansari Ajij Ansari","div":"Facade","status":"Pending"},"t-120b":{"r":"Worker","c":"Babu Rajan","cat":"Aluminium Fitter","n":"Devmani Chauhan","div":"Facade","status":"Active"},"t-120a":{"r":"Worker","c":"Babu Rajan","cat":"Aluminium Fitter","n":"Mohammad Asfak ","div":"Facade","status":"Pending"},"t-1208":{"r":"Worker","c":"Arun Raj","cat":"Logistics Handler","n":"Nitesh Kumar Yadav","div":"Facade","status":"Pending"},"t-1207":{"r":"Worker","c":"Ravindra","cat":"Silicon Applicator","n":"Ramesh Kumar ","div":"Facade","status":"Pending"},"t-1206":{"r":"Worker","c":"Vineesh Divas","cat":"Semi Fitter","n":"Om Prakash Chaudhari Ishwar Dayal Chaudhari ","div":"Facade","status":"Pending"},"t-1205":{"r":"Worker","c":"Babu Rajan","cat":"Aluminium Fitter","n":"Pankaj Kumar ","div":"Facade","status":"Active"},"t-1204":{"r":"Worker","c":"Babu Rajan","cat":"Helper","n":"Umashankar Kumar Shyam Lal Choudhrey","div":"Facade","status":"Pending"},"t-1203":{"r":"Worker","c":"Ravindra","cat":"Semi Fitter","n":"Satendra Nishad","div":"Facade","status":"Active"},"t-1201":{"r":"Worker","c":"Amit Charghand","cat":"Scaffolder","n":"Dilpreet Pawan Kumar","div":"Facade","status":"Active"},"t-1200":{"r":"Worker","c":"Babu Rajan","cat":"Fitter","n":"Samir Ahmed Tagala Gulam Sarwar","div":"Facade","status":"Active"},"t-11ff":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Silicon Applicator","n":"Shailesh Sahani Aniruddh Sahani","div":"Facade","status":"Pending"},"t-1231":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Isteyak Ahmad Abdul Haiyul Khan","div":"FD Division","status":"Active"},"t-1246":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Polisher","n":"Amarnath Yadav Ramakant Yadav","div":"FD Division","status":"Active"},"t-1191":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Carpenter joinery","n":"Suraj kumar","div":"FD Division"},"t-13a3":{"r":"Worker","c":"Bikash ","cat":"Semi Fitter","n":"Nitesh Sah","div":"Facade","status":"Active"},"t-1258":{"r":"Worker","c":"Babu Rajan","cat":"Fitter","n":"Mohd Usman Raen Mumtaj Raen","div":"Facade","status":"Active"},"t-1254":{"r":"Worker","c":"Bikash ","cat":"Semi Fitter","n":"Shyam Sundar","div":"Facade","status":"Active"},"t-1253":{"r":"Worker","c":"Ravindra","cat":"Helper","n":"Ajay Gupta","div":"Facade","status":"Pending"},"t-1252":{"r":"Worker","c":"Ravindra","cat":"Aluminium Semi Fitter","n":"Haridyanand Sahani","div":"Facade","status":"Active"},"t-124b":{"r":"Worker","c":"Babu Rajan","cat":"Silicon Applicator","n":"Shayar Singh","div":"Facade","status":"Pending"},"t-118c":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Polisher joinery","n":"Ram parvesh","div":"FD Division"},"t-123f":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery","n":"Sudeep paswan","div":"FD Division"},"t-11d9":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Carpenter FD","n":"Rahul Gautam Om Prakash","div":"FD Division","status":"Active"},"t-123b":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Helper","n":"Mangal Singh Balwinder Singh","div":"FD Division","status":"Active"},"t-125c":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Silicon","n":"Prem Prakash Sharma Krishnanand Sharma","div":"FD Division","status":"Active"},"t-125b":{"r":"Worker","c":"Jathin Raj","cat":"Acting Chargehand - Tile","n":"Riyabul Sk Aynuddin Sk","div":"FD Division"},"t-1259":{"r":"Worker","c":"Jathin Raj","cat":"Chargehand - Tile","n":"Pram Lal Nathu","div":"FD Division"},"t-1255":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Helper - Ewp","n":"Pankaj Kumar Chaurasiya Chhathu Chaurasiya","div":"FD Division"},"t-1251":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Nikhil Kannaujiya Narbada Prasad","div":"FD Division"},"t-1250":{"r":"Worker","c":"Jathin Raj","cat":"Acting Chargehand - Tile","n":"Jitndera Kumar Poornwasi","div":"FD Division"},"t-124a":{"r":"Worker","c":"Babu Rajan","cat":"Helper","n":"Mintu Kumar Rajbhar Harindra Rajbhar","div":"Facade","status":"Pending"},"t-1244":{"r":"Worker","c":"Amit Charghand","cat":"Scaffolder","n":"Manjinder Singh Balvir Singh","div":"Facade","status":"Active"},"t-123e":{"r":"Worker","c":"Venukumar","cat":"Semi Fitter","n":"Chandan Paswan Uday Paswan","div":"Facade","status":"Active"},"t-123d":{"r":"Worker","c":"Amit Charghand","cat":"Scaffolder","n":"Vishal Yadav Guddu Yadav","div":"Facade","status":"Active"},"t-123c":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Ram Vriksh Haridwar","div":"Facade","status":"Active"},"t-1236":{"r":"Worker","c":"Vineesh Umesh Prasad","cat":"Logistics Handler","n":"Ashok Kumar Yadav","div":"Facade","status":"Pending"},"t-124f":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Mason - screed","n":"Rajjak Ansari Gulli Miyan","div":"FD Division"},"t-124e":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Acting Chargehand - Screed","n":"Vidya Sagar Kushwaha Hari Bansh Kushwaha","div":"FD Division"},"t-124c":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Silicon","n":"Mohd. Salman Mohd Islam","div":"FD Division"},"t-1249":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Silicon","n":"RAM BHAROSH MANDAL RAJBANSHI CHANRADIP MANDAL RAJBANSHI","div":"FD Division"},"t-126a":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Sanjeet Kumar Singh Narayan Singh","div":"FD Division","status":"Active"},"t-127c":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Tile","n":"Krishna Murari Aniruddha","div":"FD Division","status":"Active"},"t-1352":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Helper","n":"Md Mussaraf Md Moti","div":"Facade","status":"Pending"},"t-1278":{"r":"Worker","c":"Bekalu","cat":"Helper","n":"Chunnu Kumar Rambhuwan Rajbhar","div":"Facade","status":"Pending"},"t-1272":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Jagdish Paras Nath","div":"Facade","status":"Active"},"t-12b5":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Painter","n":"Gular Khan Akbar Khan","div":"FD Division","status":"Active"},"t-12a8":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Helper - Ewp","n":"Ram Prasad Ahir","div":"FD Division","status":"Active"},"t-12b9":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Gypsum - Carpenter ","n":"Naushad Manan Ansari","div":"FD Division","status":"Active"},"t-12b1":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Helper - Gypsum","n":"Akbar Ali Anifa","div":"FD Division"},"t-12a4":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Mohammad Afzal Ali","div":"FD Division","status":"Active"},"t-12a3":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Carpenter","n":"Sachin Kumar Ramaji Prasad","div":"FD Division","status":"Active"},"t-12b3":{"r":"Worker","c":"Bikash ","cat":"Fitter","n":"Prdeep kumar","div":"Facade","status":"Active"},"t-12b2":{"r":"Worker","c":"Bikash ","cat":"Helper","n":"Rahul Yadav","div":"Facade","status":"Pending"},"t-12b0":{"r":"Worker","c":"Bikash ","cat":"Semi Fitter","n":"Ashish","div":"Facade","status":"Active"},"t-12a1":{"r":"Worker","c":"Bikash ","cat":"Semi Fitter","n":"Khurshid Khan","div":"Facade","status":"Active"},"t-12a0":{"r":"Worker","c":"Amit Charghand","cat":"Logistics Handler","n":"Raju Sunrait Yadav","div":"Facade","status":"Pending"},"t-129d":{"r":"Worker","c":"Bikash ","cat":"Fitter","n":"Gyanchand","div":"Facade","status":"Active"},"t-129c":{"r":"Worker","c":"Site Support","cat":"Data Entry Operator","n":"Santosh Kumar","div":"Facade","status":"Active"},"t-1297":{"r":"Worker","c":"Bikash ","cat":"Aluminium  Fitter","n":"Ramanand Chaudhari","div":"Facade","status":"Active"},"t-1292":{"r":"Worker","c":"Bikash ","cat":"Semi Fitter","n":"Pawan Kumar","div":"Facade","status":"Active"},"t-12d0":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Helper - Painter","n":"Rajam Janga Janga Gopal","div":"FD Division","status":"Active"},"t-12dd":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Prabhu Ram Bikarma Ram","div":"FD Division","status":"Active"},"t-12df":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Grout","n":"Purnaram Giridhari Ram","div":"FD Division","status":"Active"},"t-12ca":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Mason","n":"Dharmendra Ram Shankar Dayal Ram","div":"FD Division","status":"Active"},"t-12ce":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Harkesh Ram Kapildev Ram","div":"FD Division","status":"Active"},"t-12d3":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Shuttring","n":"Chandan ram","div":"FD Division"},"t-12bd":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Helper","n":"Gorakha Ray Banai Rai","div":"FD Division","status":"Active"},"t-12e2":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Tile maison","n":"Love preet","div":"FD Division"},"t-12c9":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Chargehand - Gypsum","n":"Javed Khan Hakeemullah Khan","div":"FD Division"},"t-12e3":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Helper","n":"Vedya Sagar Ram Surendra Ram","div":"FD Division"},"t-12e9":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Helper","n":"Dalvir Singh Ranvir Singh","div":"Facade","status":"Pending"},"t-12d4":{"r":"Worker","c":"Bikash ","cat":"Fitter","n":"Vinod Kumar Yadav Svkkhoo Yadav","div":"Facade","status":"Active"},"t-12d2":{"r":"Worker","c":"Vineesh Divas","cat":"Glass Aluminum Fitter","n":"Gurpreet Ram Balvir Ram","div":"Facade","status":"Active"},"t-12d1":{"r":"Worker","c":"Babu Rajan","cat":"Helper","n":"Md Shahid Ansari Md Waizul Haque Ansari","div":"Facade","status":"Pending"},"t-12cd":{"r":"Worker","c":"Ravindra","cat":"Fitter","n":"Mohd Ali Salahuddin Salahuddin","div":"Facade","status":"Active"},"t-12c1":{"r":"Worker","c":"Bikash ","cat":"Helper","n":"Mohammad Raju","div":"Facade","status":"Pending"},"t-12c0":{"r":"Worker","c":"Bikash ","cat":"Silicon Applicator","n":"Hariom Gupta","div":"Facade","status":"Pending"},"t-12bf":{"r":"Worker","c":"Bikash ","cat":"Semi Fitter","n":"Sonu Sahani ","div":"Facade","status":"Pending"},"t-12be":{"r":"Worker","c":"Bikash ","cat":"Aluminium Fitter","n":"Raj Kumar Choudhari ","div":"Facade","status":"Pending"},"t-12bb":{"r":"Worker","c":"Bikash ","cat":"Helper","n":"Santosh Kumar","div":"Facade","status":"Active"},"t-1337":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Sanjay Yadava Brij Mohan Yadava","div":"Facade","status":"Active"},"t-12f9":{"r":"Worker","c":"Vineesh Raj Kumar","cat":"Fitter","n":"Mustafa Hasan Raza","div":"Facade","status":"Active"},"t-12f2":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Semi Fitter","n":"Mohammad Shahid Sahab Husain","div":"Facade","status":"Active"},"t-12ef":{"r":"Worker","c":"Babu Rajan","cat":"Semi Fitter","n":"Kuldeep Sharma Hridya Lal Sharma","div":"Facade","status":"Active"},"t-12eb":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Bhola Yadav Motilal Yadav","div":"FD Division","status":"Active"},"t-12fa":{"r":"Worker","c":"Nidheesh Kannath","cat":"Helper - Tile","n":"Sanjay Hansda Doman Hansda","div":"FD Division","status":"Active"},"t-12f6":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery","n":"Amit kumar","div":"FD Division"},"t-12f8":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Bheem Rav Shri Ram","div":"FD Division","status":"Active"},"t-12f7":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Vipin Jagdish Bharati","div":"FD Division","status":"Active"},"t-12f0":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Helper","n":"Sanjay","div":"FD Division"},"t-12fb":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Carpenter joinery","n":"Rahul sharma","div":"FD Division"},"t-12fd":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery polish","n":"Ajay kumar","div":"FD Division"},"t-1338":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Mason - screed","n":"Nasim Alam Jainudin Devan","div":"FD Division"},"t-132b":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Imran Mohammed Harun","div":"FD Division"},"t-1326":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Screed Machine Operator","n":"Rameswar Behera Dhanu Behera","div":"FD Division"},"t-1335":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Bholoo Kumar Ayodhya Prajapati","div":"Facade","status":"Active"},"t-1334":{"r":"Worker","c":"Ravindra","cat":"Semi Fitter","n":"Ram Bachan","div":"Facade","status":"Active"},"t-1333":{"r":"Worker","c":"Babu Rajan","cat":"Silicon Applicator","n":"Sunil Kumar ","div":"Facade","status":"Pending"},"t-1330":{"r":"Worker","c":"Babu Rajan","cat":"Semi Fitter","n":"Deepak Kumar ","div":"Facade","status":"Pending"},"t-132f":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Helper","n":"Shivlal Nishad Adalat","div":"Facade","status":"Pending"},"t-132e":{"r":"Worker","c":"Ravindra","cat":"Semi Fitter","n":"Rajveer Singh","div":"Facade","status":"Active"},"t-132d":{"r":"Worker","c":"Ravindra","cat":"Logistics Handler","n":"Bijay Mahara","div":"Facade","status":"Pending"},"t-132c":{"r":"Worker","c":"Babu Rajan","cat":"Semi Fitter","n":"Satish Kumar Rambriksh","div":"Facade","status":"Active"},"t-132a":{"r":"Worker","c":"Ravindra","cat":"Helper","n":"Pankaj Kumar ","div":"Facade","status":"Active"},"t-1327":{"r":"Worker","c":"Babu Rajan","cat":"Helper","n":"Mohammad Umar ","div":"Facade","status":"Pending"},"t-136d":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Mason - Tile","n":"Shekh Sanakul Kalam Shekh","div":"FD Division","status":"Active"},"t-134d":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Silicon","n":"Irshad Ali Israyal Ali","div":"FD Division","status":"Active"},"t-1364":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Plan Grid Assistant","n":"Wakeel Ahmad Abdul Mujeem","div":"FD Division"},"t-135d":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Ajit Kumar Rajendra Prasad","div":"FD Division","status":"Active"},"t-1361":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Siyaram Dulare","div":"FD Division"},"t-1360":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Joinery carpenter","n":"Mohammad Harun Samad Ansari Mohammad Latif","div":"FD Division"},"t-1373":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Helper - Screed","n":"Krishna sarki","div":"FD Division","status":"Active"},"t-136e":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Plan Grid Assistant","n":"Juber Adam Ali","div":"FD Division"},"t-135e":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Tile maison","n":"Pawandeep","div":"FD Division"},"t-135c":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Tile maison","n":"Gurvinder Singh","div":"FD Division"},"t-1365":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Helper - Screed","n":"Indresh Kumar Mandal","div":"FD Division"},"t-1377":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Lift-Operator","n":"Hasbuddin Ansari Shamsher Ansari","div":"FD Division"},"t-1367":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Helper - Screed","n":"Bali Ram Sarwan Ram","div":"FD Division"},"t-1359":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Omprakash Chaudhary Dhupan Chaudhary","div":"Facade","status":"Active"},"t-1356":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Helper","n":"Sanjay","div":"Facade","status":"Pending"},"t-1355":{"r":"Worker","c":"Bekalu","cat":"Survey Assistant","n":"Amarnath Gupta Byas Gupta","div":"Facade","status":"Pending"},"t-1351":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Semi Fitter","n":"Mannu Chaudhari Rajaram Chaudhari","div":"Facade","status":"Active"},"t-134c":{"r":"Worker","c":"Vineesh Raj Kumar","cat":"Fitter","n":"Radheshyam Sharma Shiv Lal Sharma ","div":"Facade","status":"Pending"},"t-1354":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Madan Kumar Sharma Ramavtar Sharma ","div":"FD Division","status":"Active"},"t-1387":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Helper","n":"Govind Kumar Virendra Prasad","div":"FD Division"},"t-1398":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Mason - screed","n":"Gupteswar Singh Chhathu Singh","div":"FD Division"},"t-1394":{"r":"Worker","c":"Bikash ","cat":"Semi Fitter","n":"Mohammad Talib ","div":"Facade","status":"Pending"},"t-1385":{"r":"Worker","c":"Abhisheak Kumar Motilal Pal","cat":"Screed Machine Operator","n":"Achchhelal Sharma Bhigurashan Sharma","div":"FD Division"},"t-137c":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Lift-Operator","n":"Mohammad Guljar Ahmad Mohammad Mustak Ahmad","div":"FD Division"},"t-137a":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Helper","n":"Babalu Khan Khush Mohammad Khan","div":"FD Division"},"t-138a":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Joinery carpenter","n":"Iqbal Shah Afzal Shah","div":"FD Division"},"t-137b":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Helper","n":"Karmullah Ansari Rahaman ","div":"FD Division"},"t-13b0":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Painter","n":"Sanjay Singh Virendra Singh","div":"FD Division","status":"Active"},"t-13bc":{"r":"Worker","c":"Vineesh Umesh Prasad","cat":"Helper","n":"Saurabh Yadav Sunil Yadav","div":"Facade","status":"Pending"},"t-13b7":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Aluminium Fitter","n":"Ritesh Kumar ","div":"Facade","status":"Pending"},"t-13bb":{"r":"Worker","c":"Jathin Raj","cat":"Technician Tiles","n":"Shoaib Ali","div":"FD Division"},"t-13b5":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Mason - Tile","n":"Sonit Kumar Vedpal","div":"FD Division","status":"Active"},"t-13b6":{"r":"Worker","c":"Jathin Raj","cat":"Joinery Polisher","n":"Ratan Kumar Ramnaresh Nishad","div":"FD Division","status":"Active"},"t-13b3":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Tile","n":"Vijaybhan Yadav Amaldhari Yadav","div":"FD Division","status":"Active"},"t-13b4":{"r":"Worker","c":"Arjun Kumar Ram Harinath Ram","cat":"Tile maison","n":"Ajay prem","div":"FD Division"},"t-1427":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Helper - Painter","n":"Reyaz Miyan Ahmad Miyan","div":"FD Division","status":"Active"},"t-1425":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Pradeep Kumar Kesari Prasad","div":"FD Division","status":"Active"},"t-1434":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Helper - Painter","n":"Maksud Alam Akhtar Miyan","div":"FD Division","status":"Active"},"t-1432":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Ram Ashish Sahdev","div":"FD Division","status":"Active"},"t-142e":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Raj Man Shree Prakash","div":"FD Division","status":"Active"},"t-1431":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Helper - Painter","n":"Asalam Ali Rahees Ahamad","div":"FD Division","status":"Active"},"t-142d":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Kailash Nath Mohan Lal","div":"FD Division","status":"Active"},"t-142c":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Vikash Kumar Prasad Premchandra Prasad","div":"FD Division","status":"Active"},"t-142a":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Helper - Painter","n":"Utim Kumar Mahara Bacha Mahara Chamar","div":"FD Division","status":"Active"},"t-1429":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Arvind Singh Rajendra Singh","div":"FD Division","status":"Active"},"t-141d":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Lift-Operator","n":"Kanhiya Kumar Singh Ramashankar Singh","div":"FD Division","status":"Active"},"t-142b":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Gorakh Yadav Avghar Yadav","div":"FD Division"},"t-142f":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Painter","n":"Manoj Prasad Jaishree Prasad","div":"FD Division","status":"Active"},"t-144d":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Sukhram Pitai","div":"FD Division","status":"Active"},"t-143c":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Satish Kumar Bharati Chandrakesh Bharati ","div":"FD Division","status":"Active"},"t-143a":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Mahajan Prasad Ramsaran","div":"FD Division","status":"Active"},"t-1441":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Carpenter","n":"Bhagwant Singh Kashmir Singh","div":"FD Division","status":"Active"},"t-144f":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Chargehand - Gypsum","n":"Mahboob Raza Munshiraza","div":"FD Division"},"t-144c":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Acting Chargehand","n":"Arun Kumar Shiv Prasad Rajbhar","div":"FD Division"},"t-144b":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Siyaram Dulare","div":"FD Division"},"t-1446":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Acting Chargehand - Gypsum","n":"Khaleelullah Azmatullah","div":"FD Division"},"t-1445":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Plan Grid Assistant","n":"Krishna Kumar Vishwakarma Prem Vishwakarma","div":"FD Division"},"t-143e":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Chargehand - Gypsum","n":"Akhtar Ali Akbar Ali","div":"FD Division"},"t-1439":{"r":"Worker","c":"Nila Kanta Sahoo","cat":"Shuttering Carpenter","n":"Harishchandra Singh Puja Sing","div":"FD Division","status":"Active"},"t-1435":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Mason - Eifs","n":"Jitendra Ram Ganga Ram","div":"FD Division","status":"Active"},"t-148a":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Ramu Ram Tirath","div":"FD Division","status":"Active"},"t-1489":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Gypsum - Carpenter ","n":"Mangat Ram Mohan","div":"FD Division","status":"Active"},"t-1491":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Durgesh Tiwari Harimangal Tiwari","div":"FD Division","status":"Active"},"t-148e":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Helper - Painter","n":"Vikki Kumar Manoj Manjhi","div":"FD Division","status":"Active"},"t-148b":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Helper - Painter","n":"Abdulla Ansari Nijamuddin Ansari","div":"FD Division","status":"Active"},"t-1486":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Aman Rajbhar Jhinak Rajbhar","div":"FD Division","status":"Active"},"t-1483":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Bandhu Bharti Darshan Bharti","div":"FD Division","status":"Active"},"t-1482":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Ajruddin Ansari Amrullah Miyan","div":"FD Division","status":"Active"},"t-1490":{"r":"Worker","c":"Vijay Surya Kasinathan","cat":"Scaffolder","n":"Gurjant Singh Sapri Ban Gurdev Singh","div":"FD Division"},"t-148d":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Mason - Tile","n":"Baliram Kumar Yadav Sudama Yadav","div":"FD Division","status":"Active"},"t-146f":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Mason","n":"Mohammad Manan Aamant Hussain","div":"FD Division","status":"Active"},"t-146c":{"r":"Worker","c":"Dhileep Kumar Krishnappa","cat":"Joinery carpenter","n":"Hasmuddin Mansuri Rajbali Miya","div":"FD Division","status":"Active"},"t-1470":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Ashutosh Kumar Gupta Chandrika Gupta","div":"FD Division"},"t-1469":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Acting Chargehand - Gypsum","n":"Santosh Kumar Verma Patiram","div":"FD Division"},"t-1468":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Majid Ansari Inayat","div":"FD Division"},"t-1488":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Mason - Eifs","n":"Ashish","div":"FD Division"},"t-14ad":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Menuddin Ansari Saluddin","div":"FD Division","status":"Active"},"t-14ac":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Hirdya Ram Agya Ram","div":"FD Division","status":"Active"},"t-14a7":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Helper - Painter","n":"RAMDHANI YADAV BADHU YADAV","div":"FD Division","status":"Active"},"t-14a4":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Mason - Pop","n":"Mohammad Asif Hasmatullah","div":"FD Division","status":"Active"},"t-14b3":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Akhilesh Kumar Ramakant","div":"FD Division","status":"Active"},"t-14b1":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Helper - Painter","n":"Aarif Ali Ali Akabar","div":"FD Division","status":"Active"},"t-14ae":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Jamalluddin Firasat Ali","div":"FD Division","status":"Active"},"t-14ab":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Sonu Prasad Mewa Lal","div":"FD Division","status":"Active"},"t-14a8":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Sury Jeet Kumar Dheerendra Pratap","div":"FD Division","status":"Active"},"t-14a3":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Lauhar Yadav Lal Chand","div":"FD Division","status":"Active"},"t-149c":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Painter","n":"Kuldeep Kumar Tulasiram","div":"FD Division","status":"Active"},"t-149a":{"r":"Worker","c":"Suman Rabindra Jena Jena","cat":"Joinery Polisher","n":"Roshan Lal Amrik Singh","div":"FD Division","status":"Active"},"t-14af":{"r":"Worker","c":"Vijay Surya Kasinathan","cat":"Scaffolder","n":"Raju Bin Ramdev Bin","div":"FD Division"},"t-14aa":{"r":"Worker","c":"Vijay Surya Kasinathan","cat":"Helper - Painter","n":"Mehdi Hussain Ali Mahmad","div":"FD Division","status":"Active"},"t-1496":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Shuttring","n":"Amarjeet rajkumar","div":"FD Division"},"t-14a5":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Junior Foreman - Gypsum","n":"Mohammad Irfan Rojan Ali","div":"FD Division"},"t-1498":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Chargehand - Gypsum","n":"Sanjay Kumar","div":"FD Division"},"t-14b2":{"r":"Worker","c":"Pankaj Yadav Dayashnkar Yadav","cat":"Painter","n":"Golu Kumar Brijlal","div":"FD Division","status":"Active"},"t-1011":{"r":"Worker","c":"Ramesh Verma Surya Lal Verma","cat":"Painter","n":"Abdul Karim Majeed","div":"FD Division","status":"Active"},"t-1332":{"r":"Worker","c":"Babu Rajan","cat":"Fitter","n":"Mohammad Abid ","div":"Facade","status":"Pending"},"t-129b":{"r":"Worker","c":"Bikash ","cat":"Fitter","n":"Rakesh Kumar","div":"Facade","status":"Pending"},"t-1274":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Fitter","n":"Ram Ashish Ram Dhari","div":"Facade","status":"Active"},"t-1238":{"r":"Worker","c":"Amit Charghand","cat":"Scaffolder","n":"Gulshan Kumar Pawan Kumar","div":"Facade","status":"Active"},"t-1209":{"r":"Worker","c":"Amit Charghand","cat":"Scaffolder","n":"Bablu Chandra Pal ","div":"Facade","status":"Pending"},"t-11ee":{"r":"Worker","c":"Vineesh Divas","cat":"Aluminium Fabricator","n":"Jaswinder Singh Sian","div":"Facade","status":"Active"},"t-1186":{"r":"Worker","c":"Vineesh Divas","cat":"Semi Fitter","n":"Bundushya Fakhir Ikram Fakhir","div":"Facade","status":"Active"},"t-105a":{"r":"Worker","c":"Vineesh Umesh Prasad","cat":"Helper","n":"Gulshan Kumar Surendra","div":"Facade","status":"Pending"},"t-10ae":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Pujari Prasad Santoshi Prasad","div":"FD Division","status":"Active"},"t-10a9":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Carpenter","n":"Brijesh Gaund Moti  Chand","div":"FD Division","status":"Active"},"t-1095":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Aman Chauhan Sindhu Chauhan","div":"FD Division","status":"Active"},"t-10ab":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Helper - Gypsum","n":"Munku Patel Fulagen","div":"FD Division","status":"Active"},"t-10d4":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"DEEPAK VISHWAKARMA ABHAY NARAYAN VISHWAKARMA","div":"FD Division","status":"Active"},"t-10d3":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Rajiv  Sharma","div":"FD Division","status":"Active"},"t-10c7":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Pradeep Sharma Ramayan Sharma","div":"FD Division","status":"Active"},"t-10ba":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Vikesh Prajapati Guddu Prajapati","div":"FD Division","status":"Active"},"t-1110":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"VISHAL RAJBHAR PRAMOD","div":"FD Division","status":"Active"},"t-110f":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"MOSTOFA MD MOSLIM ","div":"FD Division"},"t-110e":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohd Faheem Mohd Naseem","div":"FD Division","status":"Active"},"t-110c":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Kulwant Singh Jaspal Singh","div":"FD Division","status":"Active"},"t-110b":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Raj Kumar Prasad Kanchan Prasad","div":"FD Division","status":"Active"},"t-1109":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Irshad Alam Shekh Hussain","div":"FD Division","status":"Active"},"t-1108":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Ram Bhilakh Yadav Ram Tirath Yadav","div":"FD Division","status":"Active"},"t-1107":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Pramod Kumar Bhorai","div":"FD Division","status":"Active"},"t-1105":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Raksha Ram Yadav Tularam Yadav","div":"FD Division","status":"Active"},"t-1103":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Javid Ali Sohraab","div":"FD Division","status":"Active"},"t-1102":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Parvaj Alam Khan Mairaj  Ahmad Khan","div":"FD Division","status":"Active"},"t-1101":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Dheeraj Sharma Chandrabhan Sharma","div":"FD Division","status":"Active"},"t-1100":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohammad Salman Nasibullah","div":"FD Division","status":"Active"},"t-10ff":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mithilesh Sharma Mahesh Sharma","div":"FD Division","status":"Active"},"t-10fd":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Sushil Kumar Salikaram","div":"FD Division","status":"Active"},"t-10f8":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Om Prakash Dharmraj","div":"FD Division","status":"Active"},"t-10f5":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Abdul Kayum Abdul Rauf","div":"FD Division","status":"Active"},"t-10f4":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Polisher","n":"Amar Kumar Hriday Ram","div":""},"t-10e5":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Arman Vasim","div":"FD Division","status":"Active"},"t-111a":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Sarwar Musheer Ahamad","div":"FD Division","status":"Active"},"t-1119":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Polisher","n":"Vijay Kumar Rajdhari Mahato","div":"FD Division","status":"Active"},"t-1118":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"JAKIR HOSSAIN ABDUL KASHEM","div":"FD Division","status":"Active"},"t-1329":{"r":"Worker","c":"Babu Rajan","cat":"Semi Fitter","n":"Sudama Chaudharidubar Chaudhari","div":"Facade","status":"Active"},"t-125a":{"r":"Worker","c":"Babu Rajan","cat":"Aluminium Fitter","n":"Mohammad Imaran Mohamad Muslim","div":"Facade","status":"Active"},"t-124d":{"r":"Worker","c":"Babu Rajan","cat":"Fabricator","n":"Dinanath Chauhan ","div":"Facade","status":"Pending"},"t-120d":{"r":"Worker","c":"Babu Rajan","cat":"Semi Fitter","n":"Mohammad Kamran Maulana Abdulhak ","div":"Facade","status":"Pending"},"t-1202":{"r":"Worker","c":"Ravindra","cat":"Fitter","n":"Jogindra Chaudhari Jhulan Chaudhari","div":"Facade","status":"Active"},"t-11fe":{"r":"Worker","c":"Ravindra","cat":"Semi Fitter","n":"Anil Kumar Jaisval Kapoor Chand Jaisval","div":"Facade","status":"Active"},"t-11fd":{"r":"Worker","c":"Ravindra","cat":"Glass Aluminum Fitter","n":"Hamandeep Singh Darshan Singh","div":"Facade","status":"Active"},"t-1144":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Semi Fitter","n":"Deepak Kumar Choudhry Kanhaiya Choudhry","div":"Facade","status":"Active"},"t-110a":{"r":"Worker","c":"Bekalu","cat":"Semi Fitter","n":"Karan Kumar Barkhu Prasad","div":"Facade","status":"Active"},"t-10c3":{"r":"Worker","c":"Babu Rajan","cat":"Semi Fitter","n":"Rakesh Kumar ramasish Ram","div":"Facade","status":"Active"},"t-10a2":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Semi Fitter","n":"Suhail Ansari Naimuddin Ansari","div":"Facade","status":"Active"},"t-1116":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Sonoo Kumar Maddeshiya Khublla Maddeshiya","div":"FD Division","status":"Active"},"t-1115":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Prdip Yadav Chintaram Yadav","div":"FD Division","status":"Active"},"t-1114":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Ashfak Rashid Ahmad","div":"FD Division","status":"Active"},"t-1113":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Polisher","n":"Monu Shiv Kumar","div":"FD Division","status":"Active"},"t-1112":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohammad Imran Abdul Rais","div":"FD Division","status":"Active"},"t-1169":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Shiv Ram Amar Nath","div":"FD Division","status":"Active"},"t-1168":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Rahamot Ullah Abdur Rof","div":"FD Division","status":"Active"},"t-1166":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Masum Raja Sher Ali ","div":"FD Division","status":"Active"},"t-1165":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Tarkeshwar Sah Narshing Sah","div":"FD Division","status":"Active"},"t-1164":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"MD FAROK MD ARFIN FAQIR","div":"FD Division","status":"Active"},"t-1163":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Rakesh Kumar Yadav Shiv Mangal Yadav","div":"FD Division","status":"Active"},"t-1162":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Vinay Kannaujiya Kaushal","div":"FD Division","status":"Active"},"t-1161":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Sohail Akhtar Md Sagir Ansari","div":"FD Division","status":"Active"},"t-115e":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mo Karim Abdol Rashid ","div":"FD Division","status":"Active"},"t-115d":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Ajmat Ali Akbar Ali","div":"FD Division","status":"Active"},"t-115c":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Polisher","n":"Prince Rawat Sharwan Kumar Rawat","div":"FD Division","status":"Active"},"t-115b":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Kashim Ali Roj Ali","div":"FD Division","status":"Active"},"t-115a":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Ajeet Jay Prakash","div":"FD Division","status":"Active"},"t-1159":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Nurjaman Sk Nijamuddin Sk","div":"FD Division","status":"Active"},"t-1156":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohammad Aamir Mohammad Alimuddin","div":"FD Division","status":"Active"},"t-1155":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Saddam Husain Mohammad Sami","div":"FD Division","status":"Active"},"t-1154":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Jabbar Ali Simi Ahmad","div":"FD Division","status":"Active"},"t-1153":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Yashar Mohd Shahid","div":"FD Division","status":"Active"},"t-1152":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Jagram Ram Avtar","div":"FD Division","status":"Active"},"t-13b8":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Tile","n":"Vishun Pratap Chauhan Gulab Chauhan","div":"FD Division","status":"Active"},"t-13b1":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Silicon","n":"RAM BHAROSH MANDAL RAJBANSHI CHANRADIP MANDAL RAJBANSHI","div":"FD Division"},"t-135f":{"r":"Worker","c":"Jathin Raj","cat":"Mason - Silicon","n":"Mohd. Salman Mohd Islam","div":"FD Division"},"t-12fc":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Ramnarayan Sharma Bankalal Sharma","div":"FD Division","status":"Active"},"t-12ea":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Babban Sharma Bharat Sharma","div":"FD Division","status":"Active"},"t-10f0":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Arun Ramvir Sharma","div":"FD Division","status":"Active"},"t-10e3":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Amod Kumar Sharma Madan Sharma","div":"FD Division","status":"Active"},"t-106d":{"r":"Worker","c":"Sunil Kumar Krishnankutty Nair","cat":"Joinery Carpenter","n":"Mantu Kumar Yadav Ramaji Yadav","div":"FD Division","status":"Active"},"t-12c3":{"r":"Worker","c":"Bikash ","cat":"Fitter","n":"Asind Kumar Chauhan Chunnu","div":"Facade","status":"Active"},"t-12af":{"r":"Worker","c":"Bikash ","cat":"Aluminium  Fitter","n":"Subhash Yadav","div":"Facade","status":"Active"},"t-1286":{"r":"Worker","c":"Vineesh Sameer Shaik","cat":"Fitter","n":"Mohammad Suhaib Mohammad Shahid ","div":"Facade","status":"Pending"},"t-11af":{"r":"Worker","c":"Md Fazlul Hoque ","cat":"Semi Fitter","n":"Ajay Kumar Darshan Singh","div":"Facade","status":"Active"},"t-1010":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Harpinder Lal Kashmir Chand","div":"FD Division","status":"Active"},"t-1012":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Vipin Kumar Jagdish Prasad","div":"FD Division","status":"Active"},"t-1057":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Acting Chargehand - Gypsum","n":"Anil Kumar Ganga Ram","div":"FD Division","status":"Active"},"t-1079":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohammad Ibrahim Mohammad Ilyas","div":"FD Division","status":"Active"},"t-1077":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Madan Lal Sahu","div":"FD Division","status":"Active"},"t-1076":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohammad Aslam Mohammad Gaffar","div":"FD Division","status":"Active"},"t-1074":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Painter","n":"Lalbabu Sah Late Halkhori Sah","div":"FD Division","status":"Active"},"t-1072":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Lavkush Ram Shankar","div":"FD Division","status":"Active"},"t-1070":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Mason","n":"Mukul Kumhar Hari Kumhar","div":"FD Division","status":"Active"},"t-106f":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Brijlal Pudun","div":"FD Division","status":"Active"},"t-106e":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Carpenter","n":"Brijesh Kumar Ramkishun Bhgat","div":"FD Division","status":"Active"},"t-106c":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Anil Kumar Kamta Prasad","div":"FD Division","status":"Active"},"t-1069":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohd Katif Abdul Kadir","div":"FD Division","status":"Active"},"t-1068":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Mason","n":"Ankit Kumar Sah Siyashankar Sah","div":"FD Division","status":"Active"},"t-1066":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Lakshaman Yadav Ramrati Yadav","div":"FD Division","status":"Active"},"t-10b0":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Jitendra Rajbhar Tehi Rajbhar","div":"FD Division","status":"Active"},"t-1285":{"r":"Worker","c":"Nidheesh Kannath","cat":"Helper - Tile","n":"Jahedul Islam Sk Sabud Ali Sekh","div":"FD Division","status":"Active"},"t-1242":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Silicon","n":"Parmeet Singh Joginder Singh","div":"FD Division","status":"Active"},"t-10ad":{"r":"Worker","c":"Nidheesh Kannath","cat":"Mason - Grout","n":"Ram Ugarah Darasu","div":"FD Division","status":"Active"},"t-1151":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Sarafat Ali Sakir Ali","div":"FD Division","status":"Active"},"t-114d":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Dinesh Kumar Bhola Prasad","div":"FD Division","status":"Active"},"t-114c":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Jubair Ahmad Rahmatulla","div":"FD Division","status":"Active"},"t-114b":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Carpenter","n":"Kamlesh Kumar Binda Lal Prasad","div":"FD Division","status":"Active"},"t-114a":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Nagendra Kushwaha Ram Kishun Kushwaha","div":"FD Division","status":"Active"},"t-1149":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Pintoo Kumar Sharma Madhusudan Sharma","div":"FD Division","status":"Active"},"t-1148":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Mason","n":"Rajan Verma Santosh Verma","div":"FD Division","status":"Active"},"t-1146":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mairaj Ahmad Faiyyaj ","div":""},"t-1145":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohd Kaif Mohd Ali","div":"FD Division","status":"Active"},"t-11cb":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"SARFUDDIN MOHD SALAMAT","div":"FD Division","status":"Active"},"t-11ca":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Ramji Manjhi Dudhnath Pawan","div":"FD Division","status":"Active"},"t-11c6":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Jeetendra Kushawaha Ram Vichar Kushawaha","div":"FD Division","status":"Active"},"t-11c5":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Mason - Pop","n":"Niyaj Abdul Mannan","div":"FD Division","status":"Active"},"t-11c4":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Polisher","n":"Raju Yadav Ramadhar Yadav","div":"FD Division","status":"Active"},"t-11c3":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Imran Ahmed Maqsood Ahmed Ansari Maqsood Ahmed Ansari","div":"FD Division","status":"Active"},"t-11c2":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Khurshed Ahmad Farid","div":"FD Division","status":"Active"},"t-11c1":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Carpenter","n":"Raju Sardar Budhu Sardar","div":"FD Division","status":"Active"},"t-11be":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Kallu Prasad Guru Prasad","div":"FD Division","status":"Active"},"t-11bd":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Kurban Ali Asagar Ali","div":"FD Division","status":"Active"},"t-11da":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Balwant Ramkaran","div":"FD Division","status":"Active"},"t-11d7":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Ram Naresh Ramraj","div":"FD Division","status":"Active"},"t-11d3":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Mason","n":"Nasrudin Alam Kalam Miyan","div":"FD Division","status":"Active"},"t-11e3":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Udaychand Paswan Shivnath Paswan","div":"FD Division","status":"Active"},"t-11d5":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohammad Aneesh Chanea","div":"FD Division","status":"Active"},"t-11cd":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Aasik Alam Idrish Miyan","div":"FD Division","status":"Active"},"t-11c9":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Suraj Kumar Pawan Kumar","div":"FD Division","status":"Active"},"t-11c0":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Om Prakash Maniram","div":"FD Division","status":"Active"},"t-116b":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Arvind Kumar Chauhan Rambali Chauhan","div":"FD Division","status":"Active"},"t-1167":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Polisher","n":"Dayaram Yadav Gulab Yadav","div":"FD Division","status":"Active"},"t-115f":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"SANDEEP RAJBHAR KALAPU RAJBHAR","div":"FD Division","status":"Active"},"t-1157":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Pintoo Kumar Dhuren Prasad","div":"FD Division","status":"Active"},"t-1150":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohammad Irshad Ali Mohammad Hayat Ali","div":"FD Division","status":"Active"},"t-1147":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"JAKIR ALI NIYAJ ALI","div":"FD Division","status":"Active"},"t-111b":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohd Javhar Rajja Khan Mohammad Amin Khan","div":"FD Division","status":"Active"},"t-1117":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohammad Nadeem Sannoo Khan","div":"FD Division","status":"Active"},"t-1111":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mukesh Kumar Bhagat Ambika Bhagat","div":"FD Division","status":"Active"},"t-110d":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Mohammad Ismaeel Mohammad Yusuf","div":"FD Division","status":"Active"},"t-106a":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Mason - Tile","n":"Kamoridin Ansari Hasamodin Miya","div":"FD Division","status":"Active"},"t-1104":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Chauthi Prasad Rajendra Prasad","div":"FD Division","status":"Active"},"t-10da":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Carpenter","n":"Jamal Ansari Gaisul Ajam","div":"FD Division","status":"Active"},"t-107b":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Mason - Tile","n":"Jhunna Chaudhary Bhola Chaudhary","div":"FD Division","status":"Active"},"t-1013":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Helper - Gypsum","n":"Dharmendra Kumar Sukhram","div":"FD Division","status":"Active"},"t-10fc":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Mason - Tile","n":"Yogendra Yadav Radheshyam","div":"FD Division","status":"Active"},"t-10bd":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Joinery Polisher","n":"Arjun Singh Mangi Lal Bhargav","div":"FD Division","status":"Active"},"t-1075":{"r":"Worker","c":"Mohammad Irfan Rojan Ali","cat":"Gypsum - Carpenter ","n":"Anil Kumar Ramsabad","div":"FD Division","status":"Active"}};
 
-// Returns enriched token profile merging PROFILES_DICT (live API, primary) with
-// EXCEL_REGISTRY (legacy snapshot, fallback) and TOKEN_REGISTRY.
-// V2.4.4: PROFILES_DICT is preferred so all 1305 registered tokens get metadata,
-//         not just the 622 in the stale EXCEL_REGISTRY snapshot.
+// Returns enriched token profile merging EXCEL_REGISTRY (primary) with TOKEN_REGISTRY (fallback).
+// Priority: EXCEL_REGISTRY has division/dept info; TOKEN_REGISTRY has original names.
 function getExcelProfile(tid) {
   if (!tid) return null;
-  const k = tid.toLowerCase().trim();
-  // Prefer live API profile; fall back to stale Excel snapshot
-  const lp = (typeof PROFILES_DICT !== 'undefined') ? PROFILES_DICT[k] : null;
-  if (lp) return { n: lp.name||'', cat: lp.category_of_work||'', c: lp.foremen||lp.foreman||'', r: lp.role||'Worker', div: lp.department||'' };
-  return EXCEL_REGISTRY[k] || null;
+  return EXCEL_REGISTRY[tid.toLowerCase().trim()] || null;
 }
 function getEnrichedProfile(tid) {
   if (!tid) return null;
   const k = tid.toLowerCase().trim();
-  // V2.4.4: PROFILES_DICT first so tokens added after last HTML rebuild are visible
-  const lp = (typeof PROFILES_DICT !== 'undefined') ? PROFILES_DICT[k] : null;
   const ex = EXCEL_REGISTRY[k];
   const tr = TOKEN_REGISTRY[k];
-  if (!lp && !ex && !tr) return null;
+  if (!ex && !tr) return null;
   return {
-    n:   (lp?.name)              || (ex?.n) || (tr?.n) || '',
-    t:   (lp?.category_of_work)  || (ex?.cat) || (tr?.t) || '',   // trade/category
-    c:   (lp?.foremen || lp?.foreman) || (ex?.c) || (tr?.c) || '', // contractor/foreman
-    r:   (lp?.role)              || (ex?.r) || (tr?.r) || 'Worker',
-    div: (lp?.department)        || (ex?.div) || '',               // division
+    n:   (ex?.n) || (tr?.n) || '',
+    t:   (ex?.cat) || (tr?.t) || '',   // trade/category
+    c:   (ex?.c) || (tr?.c) || '',     // contractor
+    r:   (ex?.r) || (tr?.r) || 'Worker',
+    div: (ex?.div) || '',              // division from Excel
   };
 }
-// Total assigned tokens — V2.4.4: prefer live PROFILES_DICT (all 1305 registered tokens).
-// Falls back to EXCEL_REGISTRY only when profiles have not yet loaded.
+// Total assigned tokens = EXCEL_REGISTRY count, excluding TokenMe engineer/test tokens.
+// Must match getFilteredWorkers() exclusion so attendance rates are consistent.
 function getTotalAssignedCount() {
-  if (typeof PROFILES_DICT !== 'undefined' && Object.keys(PROFILES_DICT).length > 0) {
-    return Object.values(PROFILES_DICT).filter(p => {
-      const d = (p.department || p.div || '').toLowerCase();
-      return d !== 'tokenme';
-    }).length;
-  }
   return Object.values(EXCEL_REGISTRY).filter(e => (e.div||'').toLowerCase() !== 'tokenme').length;
 }
 
 
 
 let CFG = {
-  url:              'https://api-server-sls-sobha.tokenme.net/api/v2/tokens/TokensMovement',
-  profilesUrl:      'https://api-server-sls-sobha.tokenme.net/api/v2/tokens/TokensProfiles',
-  tokenRegistryUrl: 'https://api-server-dotnet-sobha.tokenme.net/api/Token', // V2.4.4: new dotnet API — all 1300+ assigned tokens
-  tagsUrl:          'https://api-server-sls-sobha.tokenme.net/api/v2/tokens/tags',
+  url:         'https://api-server-sls-sobha.tokenme.net/api/v2/tokens/TokensMovement',
+  profilesUrl: 'https://api-server-sls-sobha.tokenme.net/api/v2/tokens/TokensProfiles',
+  tagsUrl:     'https://api-server-sls-sobha.tokenme.net/api/v2/tokens/tags',
   auth: '',
+  dotnetUrl: 'https://api-server-dotnet-sobha.tokenme.net',
   interval: 30,
   idle: 15,
   transitMax: 1800, // gaps ≤ this (30 min) = Transit (lift queuing / floor changes); gaps > this = Uncovered (no anchor zone). Idle bucket reserved for real TokenME idle-alert events.
@@ -4857,7 +4180,7 @@ let CFG = {
   nearFloorN: 5,              // TIER 3: floors within ±N = near zone
   nearFloorTransitMaxMin: 60, // TIER 3 cap (minutes)
 
-  // ── EFFECTIVE-DATED CLASSIFICATION ERAS (V2.4.4) ─────────────────────────────
+  // ── EFFECTIVE-DATED CLASSIFICATION ERAS (V2.4.3) ─────────────────────────────
   // History preservation: every session is classified using the era in force on its
   // WORK-DAY date (06:00 Dubai → 05:59 next day). Past work-days keep their original
   // classification; the new rules apply only from the change date forward.
@@ -4869,7 +4192,7 @@ let CFG = {
   // npAnchors set. NEVER edit a past era — that would rewrite history.
   npChangeDate: '2026-06-03',
 
-  // ── LONG-DWELL RECLASSIFICATION (V2.4.4 · Era 2 only) ────────────────────────
+  // ── LONG-DWELL RECLASSIFICATION (V2.4.3 · Era 2 only) ────────────────────────
   // A worker detected continuously at a TRANSIT/INFRASTRUCTURE non-productive anchor
   // (staircase, hoist, lift) for a long stretch is almost certainly WORKING in the
   // adjacent area — that anchor is simply the nearest device picking up the token.
@@ -4963,7 +4286,7 @@ let CFG = {
   ],
 };
 
-// ── ERA HELPERS (V2.4.4) ─────────────────────────────────────────────────────
+// ── ERA HELPERS (V2.4.3) ─────────────────────────────────────────────────────
 // Resolve the work-day (06:00 Dubai → 05:59 next day) date string for a session,
 // then pick the classification era in force on that work-day.
 function npWorkDayStr(startLike){
@@ -5615,7 +4938,7 @@ function getInclusiveWorkerCount() {
 }
 // V2.1 reference data (replaces old anchor-tag lookup)
 let TAGS_DICT     = {};   // { tagId(int) → tagName(str) }  from /api/v2/tokens/tags
-let PROFILES_DICT = {};   // { tokenreadid.lower() → profile } from /api/Token (dotnet) or /api/v2/tokens/TokensProfiles (fallback)
+let PROFILES_DICT = {};   // { tokenreadid.lower() → profile } from /api/v2/tokens/TokensProfiles
 let TAGS_LOADED     = false;
 let PROFILES_LOADED = false;
 // ANCHOR_DICT populated synthetically from tag_signature for backward compat (declared above)
@@ -5729,95 +5052,26 @@ function _buildSyntheticAnchorDict() {
 // Legacy alias — kept so any code that calls fetchAnchorTags() still works
 async function fetchAnchorTags() { return fetchTagDefs(); }
 
-// V2.4.4: Fetch all assigned tokens from dotnet API (/api/Token) with pagination.
-// Falls back to legacy TokensProfiles endpoint if the new API fails.
+// V2.1: Fetch worker profiles from /api/v2/tokens/TokensProfiles
 async function fetchTokensProfiles() {
-  try {
-    // GET request — no Content-Type (avoids CORS preflight). Auth added only if set.
-    const headers = {};
-    if (CFG.auth) headers['Authorization'] = CFG.auth;
-
-    const PAGE_SIZE = 2000; // large enough to get all tokens in one shot; will page if needed
-    let allRows = [];
-    let pageNumber = 0;
-    let hasMore = true;
-
-    while (hasMore) {
-      const reqUrl = `${CFG.tokenRegistryUrl}?PageNumber=${pageNumber}&PageSize=${PAGE_SIZE}`;
-      console.log(`[V2.4.4] Fetching token registry: ${reqUrl} (auth: ${CFG.auth ? 'set' : 'EMPTY'})`);
-      const res = await fetch(reqUrl, { headers, signal: AbortSignal.timeout(20000) });
-      console.log(`[V2.4.4] Token registry response: HTTP ${res.status}`);
-      if (!res.ok) {
-        console.warn(`[V2.4.4] Token registry HTTP ${res.status} — check auth token for dotnet API`);
-        break;
-      }
-      const data = await res.json();
-      // Diagnostic: log the top-level keys so we can see the exact response shape
-      console.log(`[V2.4.4] Token registry response keys:`, Object.keys(data || {}), '| rows type:', Array.isArray(data?.rows) ? `array(${data.rows.length})` : typeof data?.rows, '| sample:', JSON.stringify(data?.rows?.[0] || data).slice(0, 300));
-      const rows = (data && Array.isArray(data.rows)) ? data.rows
-        : Array.isArray(data) ? data   // handle plain array response
-        : [];
-      if (rows.length > 0) {
-        allRows.push(...rows);
-        console.log(`[V2.4.4] Token registry page ${pageNumber}: ${rows.length} rows (total so far: ${allRows.length})`);
-        hasMore = rows.length >= PAGE_SIZE;
-        pageNumber++;
-      } else {
-        console.warn('[V2.4.4] Token registry rows empty on page', pageNumber, '| raw data keys:', Object.keys(data || {}));
-        hasMore = false;
-      }
-    }
-
-    if (allRows.length > 0) {
-      PROFILES_DICT = {};
-      for (const p of allRows) {
-        // New API uses camelCase: tokenReadId
-        const key = (p.tokenReadId || p.tokenreadid || '').toLowerCase().trim();
-        if (!key) continue;
-        // Normalise to the same shape the rest of the dashboard expects
-        PROFILES_DICT[key] = {
-          tokenreadid:      p.tokenReadId   || p.tokenreadid,
-          name:             p.name          || p.workerName   || p.fullName
-                            || ((p.firstName || '') + (p.lastName ? ' ' + p.lastName : '')).trim()
-                            || null,
-          foremen:          p.foreman       || p.foremanName  || p.teamName || null,
-          foreman:          p.foreman       || p.foremanName  || p.teamName || null,
-          department:       p.department    || p.subContractorName || p.companyName || null,
-          trade:            p.trade         || p.roleName     || null,
-          category_of_work: p.category_of_work || p.categoryWorkName || p.categoryName || null,
-          // preserve all raw fields so future code can access them
-          ...p,
-        };
-      }
-      PROFILES_LOADED = true;
-      console.log(`[V2.4.4] Token registry loaded: ${Object.keys(PROFILES_DICT).length} tokens`);
-      if (DATA) _applyProfilesToDATAWorkers();
-      return; // success — skip legacy fallback
-    }
-
-    console.warn('[V2.4.4] Token registry returned 0 rows — falling back to TokensProfiles');
-  } catch (e) {
-    console.warn('[V2.4.4] Token registry fetch failed:', e.message, '— falling back to TokensProfiles');
-  }
-
-  // ── Legacy fallback: /api/v2/tokens/TokensProfiles ────────────────────────
   try {
     const res = await fetch(CFG.profilesUrl, { signal: AbortSignal.timeout(15000) });
     if (!res.ok) { console.warn('[V2.1] Profiles API HTTP', res.status); return; }
     const raw  = await res.json();
     const list = Array.isArray(raw) ? raw
-      : (raw.tokens && Array.isArray(raw.tokens)) ? raw.tokens
-      : (raw.data   && Array.isArray(raw.data))   ? raw.data : [];
+      : (raw.tokens  && Array.isArray(raw.tokens))  ? raw.tokens
+      : (raw.data    && Array.isArray(raw.data))    ? raw.data : [];
     PROFILES_DICT = {};
     for (const p of list) {
       const key = (p.tokenreadid || '').toLowerCase().trim();
       if (key) PROFILES_DICT[key] = p;
     }
     PROFILES_LOADED = true;
-    console.log(`[V2.1] Profiles fallback loaded: ${Object.keys(PROFILES_DICT).length} tokens`);
+    console.log(`[V2.1] Profiles loaded: ${Object.keys(PROFILES_DICT).length} tokens`);
+    // If main data is already loaded, patch worker profiles immediately
     if (DATA) _applyProfilesToDATAWorkers();
-  } catch (e) {
-    console.warn('[V2.1] fetchTokensProfiles fallback failed:', e.message);
+  } catch(e) {
+    console.warn('[V2.1] fetchTokensProfiles failed:', e.message);
   }
 }
 
@@ -6272,7 +5526,7 @@ function processRecords(records, _histOpts) {
     const _tagSig    = String(r.tag_signature || r.TagSignature || '').trim();
     const NP_TAGS    = ['non-productive','non_productive','np','welfare','dining','rest'];
 
-    // ── TEMP DIAGNOSTIC v2 (V2.4.4) — remove after diagnosing Dining card ──────────
+    // ── TEMP DIAGNOSTIC v2 (V2.4.3) — remove after diagnosing Dining card ──────────
     try {
       if (!window.__diag) window.__diag = { aids:new Set(), sigs:new Set(), keys:null, diningSamples:[] };
       if (!window.__diag.keys) { window.__diag.keys = Object.keys(r); console.log('[REC KEYS]', window.__diag.keys, '| SAMPLE RECORD:', r); }
@@ -6287,7 +5541,7 @@ function processRecords(records, _histOpts) {
 
     let zoneType, zoneArea, _zoneKey;
 
-    // ── ERA RESOLUTION (V2.4.4) ───────────────────────────────────────────────
+    // ── ERA RESOLUTION (V2.4.3) ───────────────────────────────────────────────
     // Classify each session using the era in force on ITS work-day. This keeps
     // historical work-days on the original rules and applies the new anchor-level
     // rules only from the change date forward.
@@ -6360,7 +5614,7 @@ function processRecords(records, _histOpts) {
         }
       }
       if (_npA) {
-        // V2.4.4: the curated non-productive anchor list is AUTHORITATIVE for both
+        // V2.4.3: the curated non-productive anchor list is AUTHORITATIVE for both
         // NP status and zone category. This overrides a generic tag_signature result
         // (e.g. a 'Dining area' anchor whose tag only resolved to generic non-productive
         // would otherwise fall into 'Other NP Zone' instead of the Dining Area card).
@@ -6417,7 +5671,7 @@ function processRecords(records, _histOpts) {
         if (!_zoneKey || _zoneKey === 'productive') _zoneKey = _floorNpOverride.zoneKey || 'np-other';
       }
     }
-    // ── LONG-DWELL RECLASSIFICATION (V2.4.4 · Era 2 only) ─────────────────────
+    // ── LONG-DWELL RECLASSIFICATION (V2.4.3 · Era 2 only) ─────────────────────
     // A long continuous dwell at a transit/infrastructure NP anchor (staircase,
     // hoist, lift) with genuine movement = the worker is working in that area; the
     // NP anchor is merely the nearest device. Reclassify to productive. Helmet-left-
@@ -8474,7 +7728,6 @@ function nav(page) {
   if (page === 'idle-analysis')        { renderIdleAnalysisPage(); }
   if (page === 'hours-breakdown')      { renderHoursBreakdownPage(); }
   if (page === 'absence-validator')    { renderAbsenceValidatorPage(); }
-  if (page === 'floor-workers')        { renderFloorWorkersPage(); }
 }
 
 // ── SIDEBAR TOGGLE ──
@@ -8913,16 +8166,23 @@ function updateOverview() {
   setEl('kpi-np-pct',   avgProdStr);    // (4) Avg Productive Hours / Worker — corrProdMovS (confirmed + inferred, idle-corrected)
   setEl('kpi-hrs',      avgNpStr);      // (5) Avg NP Active Hours / Worker
 
-  // (6) Total Assigned Tokens — from TokensProfiles API (all registered tokens)
+  // (6) Total Assigned Tokens — use live dotnet count if available, else PROFILES_DICT
   const totalAssigned = Object.keys(PROFILES_DICT).length;
-  if (totalAssigned > 0) {
+  const liveCount = window._dotnetAssignedCount;
+  const displayTotal = liveCount != null ? liveCount : (totalAssigned > 0 ? totalAssigned : null);
+  if (displayTotal != null) {
     const onSite   = workersOnSite;
-    const onSitePct = Math.round(onSite / totalAssigned * 100);
-    setEl('kpi-assigned-total', totalAssigned);
+    const onSitePct = Math.round(onSite / displayTotal * 100);
+    setEl('kpi-assigned-total', displayTotal);
     setEl('kpi-assigned-sub',  `${onSite} on site · ${onSitePct}% of assigned`);
   } else {
-    setEl('kpi-assigned-total', '—');
-    setEl('kpi-assigned-sub',  'Profiles API not yet loaded');
+    const kpiAssignedEl = document.getElementById('kpi-assigned-total');
+    if (!kpiAssignedEl || kpiAssignedEl.textContent === '...') {
+      // fetch in progress — leave placeholder, don't overwrite
+    } else {
+      setEl('kpi-assigned-total', '—');
+      setEl('kpi-assigned-sub',  'Profiles API not yet loaded');
+    }
   }
 
   // (6) Avg Idle / Worker = ALL idle (Prod Idle + NP Idle) across all workers
@@ -9495,7 +8755,7 @@ function updateOverview() {
 
       // Uncovered gap time is shown in the dedicated dashed banner above the zone grid — not repeated here.
 
-      // V2.4.4: Always surface expected NP zones (lunch/dining + welfare) so the
+      // V2.4.3: Always surface expected NP zones (lunch/dining + welfare) so the
       // lunch area is represented even when its anchors are external / not yet
       // detected. Shown as a "pending" card when there is no data for the period.
       {
@@ -10142,14 +9402,9 @@ function renderOverviewCategoryChart() {
     }
   });
 
-  // V2.4.4: Use PROFILES_DICT (live API, 1305 tokens) for assigned category counts.
-  // Falls back to EXCEL_REGISTRY (622 tokens) only when profiles are not yet loaded.
+  // Supplement with Excel Registry for assigned (total) counts
   const catAssigned = {};
-  const _catSource = (typeof PROFILES_DICT !== 'undefined' && Object.keys(PROFILES_DICT).length > 0)
-    ? Object.values(PROFILES_DICT).map(p => ({ cat: p.category_of_work || 'Unknown', div: p.department || '' }))
-    : Object.values(EXCEL_REGISTRY || {}).map(e => ({ cat: e.cat || 'Unknown', div: e.div || '' }));
-  _catSource.forEach(e => {
-    if ((e.div||'').toLowerCase() === 'tokenme') return; // skip test tokens
+  Object.values(EXCEL_REGISTRY || {}).forEach(e => {
     const cat = e.cat || 'Unknown';
     catAssigned[cat] = (catAssigned[cat] || 0) + 1;
   });
@@ -10195,7 +9450,7 @@ function renderOverviewCategoryChart() {
   const totalOnSite = apiWorkers.length;
   if (badge) badge.textContent = hasApiCats
     ? `${totalOnSite} on-site · ${Object.keys(catAssigned).length} categories (API)`
-    : ((typeof PROFILES_DICT !== 'undefined' && Object.keys(PROFILES_DICT).length > 0) ? Object.keys(PROFILES_DICT).length : Object.keys(EXCEL_REGISTRY||{}).length) + ' assigned tokens · live registry';
+    : Object.keys(EXCEL_REGISTRY||{}).length + ' assigned tokens';
 
   // Destroy old chart
   if (canvas._chartInst) { try { canvas._chartInst.destroy(); } catch(e){} canvas._chartInst = null; }
@@ -12317,6 +11572,7 @@ function populateAPIConfigForm() {
   const set = (id, val) => { const e = document.getElementById(id); if (e && val != null) e.value = val; };
   set('cfg-url',        CFG.url || '');
   set('cfg-auth',       CFG.auth || '');
+  set('cfg-dotnet-url', CFG.dotnetUrl || 'https://api-server-dotnet-sobha.tokenme.net');
   set('cfg-interval',   CFG.interval || 30);
   set('cfg-idle',       CFG.idle || 15);
   set('cfg-transit-max', CFG.transitMax || 1800);
@@ -12373,6 +11629,7 @@ function addUser() {
 function saveAPIConfig() {
   CFG.url=document.getElementById('cfg-url').value||CFG.url;
   CFG.auth=document.getElementById('cfg-auth').value;
+  CFG.dotnetUrl=(document.getElementById('cfg-dotnet-url')?.value||'https://api-server-dotnet-sobha.tokenme.net').replace(/\/+$/,'');
   CFG.interval=parseInt(document.getElementById('cfg-interval').value)||30;
   CFG.idle=parseInt(document.getElementById('cfg-idle').value)||15;
   CFG.transitMax=parseInt(document.getElementById('cfg-transit-max')?.value)||1800;
@@ -15754,7 +15011,7 @@ function renderV2NpBanner() {
   grid.innerHTML = html;
 }
 
-// ── CLASSIFICATION CHANGE LOG (V2.4.4) ───────────────────────────────────────
+// ── CLASSIFICATION CHANGE LOG (V2.4.3) ───────────────────────────────────────
 function renderChangeLogPage() {
   const eras = (CFG.classificationEras || []).slice();
   const fmtDate = s => {
@@ -16787,6 +16044,57 @@ function initDashboard() {
   updateAllViews();   // renders empty state (DATA === null guards in each view)
   fetchAPI();
   if (CFG.interval > 0) refreshTimer = setInterval(fetchAPI, CFG.interval*1000);
+  fetchDotnetAssignedCount(); // live Total Assigned Tokens from dotnet Token API
+}
+
+async function fetchDotnetAssignedCount() {
+  // Show loading placeholder immediately
+  setEl('kpi-assigned-total', '...');
+  setEl('kpi-assigned-sub', 'Fetching assigned count\u2026');
+
+  const fallback = () => {
+    window._dotnetAssignedCount = null; // let render pass use PROFILES_DICT
+    const fb = Object.keys(EXCEL_REGISTRY).filter(k => !isTokenMe(EXCEL_REGISTRY[k].div)).length;
+    setEl('kpi-assigned-total', fb);
+    setEl('kpi-assigned-sub', 'Registry fallback \u00b7 live count unavailable');
+  };
+
+  try {
+    const base = (CFG.dotnetUrl || 'https://api-server-dotnet-sobha.tokenme.net').replace(/\/+$/, '');
+    const headers = { 'Content-Type': 'application/json' };
+    if (CFG.auth) headers['Authorization'] = CFG.auth;
+
+    let allTokens = [];
+    let pageNumber = 0;
+    const pageSize = 500;
+    let hasMoreData = true;
+
+    while (hasMoreData) {
+      const res = await fetch(
+        `${base}/api/Token?PageNumber=${pageNumber}&PageSize=${pageSize}`,
+        { headers }
+      );
+      if (!res.ok) { fallback(); return; }
+      const data = await res.json();
+      if (data.rows && data.rows.length > 0) {
+        allTokens.push(...data.rows);
+        if (data.rows.length < pageSize) hasMoreData = false;
+        else pageNumber++;
+      } else {
+        hasMoreData = false;
+      }
+    }
+
+    const assignedCount = allTokens.filter(t => t.roleId > 0).length;
+    window._dotnetAssignedCount = assignedCount;
+    setEl('kpi-assigned-total', assignedCount);
+    const curSub = document.getElementById('kpi-assigned-sub');
+    if (curSub && curSub.textContent.includes('Fetching')) {
+      setEl('kpi-assigned-sub', 'Live count \u00b7 Token API');
+    }
+  } catch (e) {
+    fallback();
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -19150,7 +18458,7 @@ function renderJourney(tid) {
   // journeyIdleTotalS = sum of idle from all detected sessions (productive + NP), capped at shift span.
   const _corrIdleS     = Math.max(_rawProdIdleS, journeyIdleTotalS); // consistent with KPI card
   const _extraIdleS    = _corrIdleS - _rawProdIdleS;            // idle reclaimed from active bucket
-  // V2.4.4 FIX: Active = the idle-corrected productive value (corrProdMovS) used by the
+  // V2.4.3 FIX: Active = the idle-corrected productive value (corrProdMovS) used by the
   // Productive card, the Active-time row and the efficiency formula — NOT prodMovS minus
   // ALL-zone idle. The old formula subtracted idle that occurred in NP zones from the
   // productive bucket, understating Active (e.g. in the Division-Performance popup) below

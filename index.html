@@ -16085,7 +16085,13 @@ async function fetchDotnetAssignedCount() {
       }
     }
 
-    const assignedCount = allTokens.filter(t => t.roleId > 0).length;
+    const assignedCount = allTokens.filter(t =>
+      (t.roleId > 0) ||
+      (t.subContractorId > 0) ||
+      (t.teamId > 0) ||
+      (t.categoryWorkId > 0) ||
+      (t.subCategoryWorkId > 0)
+    ).length;
     window._dotnetAssignedCount = assignedCount;
     setEl('kpi-assigned-total', assignedCount);
     const curSub = document.getElementById('kpi-assigned-sub');

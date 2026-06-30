@@ -731,6 +731,18 @@ table{width:100%;box-sizing:border-box}
         <label>Password</label>
         <input type="password" id="lp" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
+      <div style="margin:14px 0;border-top:1px solid rgba(255,255,255,.12);padding-top:14px">
+        <div style="font-size:10px;letter-spacing:.5px;color:rgba(255,255,255,.4);margin-bottom:10px;text-transform:uppercase">TokenMe Account (for live Total Assigned Tokens)</div>
+        <div class="fg">
+          <label>TokenMe Email</label>
+          <input type="text" id="tm-email" placeholder="you@token-me.com" autocomplete="username">
+        </div>
+        <div class="fg">
+          <label>TokenMe Password</label>
+          <input type="password" id="tm-password" placeholder="TokenMe API password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <div id="tm-login-status" style="font-size:11px;color:rgba(255,255,255,.45);min-height:14px"></div>
+      </div>
       <button class="btn-login" onclick="doLogin()">Sign In</button>
       <div style="margin-top:18px;text-align:center;font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.5px">
         SOBHA VERDE · CONFIDENTIAL SYSTEM · AUTHORISED ACCESS ONLY
@@ -3795,6 +3807,7 @@ table{width:100%;box-sizing:border-box}
       <div class="form-group"><label>API Endpoint URL</label><input type="text" id="cfg-url" value="https://api-server-sls-sobha.tokenme.net/api/v2/tokens/TokensMovement"></div>
       <div class="form-group"><label>Authorization Header (leave blank if none)</label><input type="text" id="cfg-auth" placeholder="Bearer token or API key"></div>
       <div class="form-group"><label>Dotnet API Base URL <span style="font-weight:400;color:var(--muted)">(Token registry — for Total Assigned Tokens count)</span></label><input type="text" id="cfg-dotnet-url" value="https://api-server-dotnet-sobha.tokenme.net"></div>
+      <div class="form-group"><label>Total Assigned Tokens — Manual Override <span style="font-weight:400;color:var(--muted)">(leave blank to use live API; set a number to pin the count when CORS blocks the dotnet API)</span></label><input type="number" id="cfg-assigned-override" placeholder="e.g. 1305 — leave blank for live count" min="0"></div>
       <div class="form-row">
         <div class="form-group"><label>Refresh Interval (seconds)</label><input type="number" id="cfg-interval" value="30" min="10"></div>
         <div class="form-group"><label>Minimum Gap Threshold (seconds)</label><input type="number" id="cfg-idle" value="15" min="5"><small style="color:var(--muted)">Gaps shorter than this are ignored (signal noise)</small></div>
@@ -4114,6 +4127,7 @@ let CFG = {
   tagsUrl:     'https://api-server-sls-sobha.tokenme.net/api/v2/tokens/tags',
   auth: '',
   dotnetUrl: 'https://api-server-dotnet-sobha.tokenme.net',
+  assignedOverride: null, // set to a number to pin Total Assigned Tokens (bypasses CORS-blocked dotnet API)
   interval: 30,
   idle: 15,
   transitMax: 1800, // gaps ≤ this (30 min) = Transit (lift queuing / floor changes); gaps > this = Uncovered (no anchor zone). Idle bucket reserved for real TokenME idle-alert events.
@@ -4454,12 +4468,39 @@ let shiftFilter = 'all', refreshTimer = null, retryTimer = null, retryCount = 0;
 let charts = {}, apiOnline = false;
 
 // ── LOGIN ──
-function doLogin() {
+async function doLogin() {
   const u = document.getElementById('lu').value.trim();
   const p = document.getElementById('lp').value;
   const usr = USERS_DB.find(x => x.u===u && x.p===p);
   if (!usr) { document.getElementById('lerr').style.display='block'; return; }
   CU = usr;
+
+  // ── TokenMe API login (optional) — fetches a fresh Bearer token so the
+  // dotnet Token API works without manually pasting a JWT in Admin Panel.
+  const tmEmail = document.getElementById('tm-email')?.value.trim();
+  const tmPassword = document.getElementById('tm-password')?.value;
+  const statusEl = document.getElementById('tm-login-status');
+  if (tmEmail && tmPassword) {
+    if (statusEl) statusEl.textContent = 'Connecting to TokenMe…';
+    try {
+      const base = (CFG.dotnetUrl || 'https://api-server-dotnet-sobha.tokenme.net').replace(/\/+$/, '');
+      const res = await fetch(`${base}/api/Login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ email: tmEmail, password: tmPassword })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.access_token) {
+        CFG.auth = `Bearer ${data.access_token}`;
+        if (statusEl) { statusEl.style.color = '#4ade80'; statusEl.textContent = 'TokenMe connected ✓'; }
+      } else {
+        if (statusEl) { statusEl.style.color = '#f87171'; statusEl.textContent = data.message || data.error || 'TokenMe login failed — check email/password'; }
+      }
+    } catch (e) {
+      if (statusEl) { statusEl.style.color = '#f87171'; statusEl.textContent = 'TokenMe login error: ' + e.message; }
+    }
+  }
+
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('uav').textContent = usr.init;
@@ -5055,7 +5096,9 @@ async function fetchAnchorTags() { return fetchTagDefs(); }
 // V2.1: Fetch worker profiles from /api/v2/tokens/TokensProfiles
 async function fetchTokensProfiles() {
   try {
-    const res = await fetch(CFG.profilesUrl, { signal: AbortSignal.timeout(15000) });
+    const _profOpts = { signal: AbortSignal.timeout(15000) };
+    if (CFG.auth) _profOpts.headers = { Authorization: CFG.auth };
+    const res = await fetch(CFG.profilesUrl, _profOpts);
     if (!res.ok) { console.warn('[V2.1] Profiles API HTTP', res.status); return; }
     const raw  = await res.json();
     const list = Array.isArray(raw) ? raw
@@ -7065,10 +7108,14 @@ function updateAttendance() {
   // Use inclusive worker count (max of hourly tracker / LIVE_RECORDS / DATA.workers)
   // so this page always agrees with the Overview KPI card.
   const present = getInclusiveWorkerCount();
-  // Use PROFILES_DICT for authoritative assigned count (486)
-  const assignedCount = (typeof PROFILES_DICT !== 'undefined' && Object.keys(PROFILES_DICT).length > 0)
-    ? Object.keys(PROFILES_DICT).length
-    : present;
+  // Use live dotnet Token API count first (set by fetchDotnetAssignedCount), so this
+  // page always matches Overview's Total Assigned Tokens. Falls back to PROFILES_DICT.
+  const liveAssigned = window._dotnetAssignedCount;
+  const assignedCount = (liveAssigned != null)
+    ? liveAssigned
+    : ((typeof PROFILES_DICT !== 'undefined' && Object.keys(PROFILES_DICT).length > 0)
+        ? Object.keys(PROFILES_DICT).length
+        : present);
   const absent    = Math.max(0, assignedCount - present);
   const attPctRaw = assignedCount > 0 ? Math.round(present / assignedCount * 100) : 100;
 
@@ -11573,6 +11620,8 @@ function populateAPIConfigForm() {
   set('cfg-url',        CFG.url || '');
   set('cfg-auth',       CFG.auth || '');
   set('cfg-dotnet-url', CFG.dotnetUrl || 'https://api-server-dotnet-sobha.tokenme.net');
+  const overrideEl = document.getElementById('cfg-assigned-override');
+  if (overrideEl) overrideEl.value = (CFG.assignedOverride != null) ? CFG.assignedOverride : '';
   set('cfg-interval',   CFG.interval || 30);
   set('cfg-idle',       CFG.idle || 15);
   set('cfg-transit-max', CFG.transitMax || 1800);
@@ -11630,6 +11679,8 @@ function saveAPIConfig() {
   CFG.url=document.getElementById('cfg-url').value||CFG.url;
   CFG.auth=document.getElementById('cfg-auth').value;
   CFG.dotnetUrl=(document.getElementById('cfg-dotnet-url')?.value||'https://api-server-dotnet-sobha.tokenme.net').replace(/\/+$/,'');
+  const _ov = document.getElementById('cfg-assigned-override')?.value;
+  CFG.assignedOverride = (_ov !== '' && _ov != null && !isNaN(parseInt(_ov))) ? parseInt(_ov) : null;
   CFG.interval=parseInt(document.getElementById('cfg-interval').value)||30;
   CFG.idle=parseInt(document.getElementById('cfg-idle').value)||15;
   CFG.transitMax=parseInt(document.getElementById('cfg-transit-max')?.value)||1800;
@@ -16048,59 +16099,106 @@ function initDashboard() {
 }
 
 async function fetchDotnetAssignedCount() {
-  // Show loading placeholder immediately
+  // Shared setter: stores the count, updates the Overview KPI card directly,
+  // and re-renders the Attendance page too if it's currently active — so
+  // Overview and Attendance always show the same Total Assigned Tokens number.
+  const setAssignedCount = (count, subLabel) => {
+    window._dotnetAssignedCount = count;
+    setEl('kpi-assigned-total', count);
+    setEl('kpi-assigned-sub', subLabel);
+    try {
+      const activePage = document.querySelector('.page.active');
+      if (activePage && activePage.id === 'page-attendance' && typeof updateAttendance === 'function') {
+        updateAttendance();
+      } else if (typeof updateOverview === 'function') {
+        updateOverview(); // refresh on-site % etc. using the new count even if attendance isn't open
+      }
+    } catch (e) { /* DATA may not be loaded yet — safe to ignore */ }
+  };
+
+  // ── Path 0: manual override (bypasses CORS issue with dotnet API) ─────────
+  if (CFG.assignedOverride != null && CFG.assignedOverride > 0) {
+    setAssignedCount(CFG.assignedOverride, 'Pinned count \u00b7 Admin override');
+    return;
+  }
+
+  // This function tries the dotnet API first.
+  // The dotnet server currently blocks browser requests with CORS, so it will
+  // almost always fall through to the SLS TokensProfiles count below.
+  // When the server-side CORS headers are added, the dotnet path will activate.
+
   setEl('kpi-assigned-total', '...');
   setEl('kpi-assigned-sub', 'Fetching assigned count\u2026');
 
-  const fallback = () => {
-    window._dotnetAssignedCount = null; // let render pass use PROFILES_DICT
-    const fb = Object.keys(EXCEL_REGISTRY).filter(k => !isTokenMe(EXCEL_REGISTRY[k].div)).length;
-    setEl('kpi-assigned-total', fb);
-    setEl('kpi-assigned-sub', 'Registry fallback \u00b7 live count unavailable');
-  };
-
+  // ── Path 1: dotnet /api/Token — single large-page fetch, exactly like the
+  // working Angular app's fetchAndStoreAllTokens() (site.service.ts), which
+  // uses PageSize=1577 in ONE call rather than probing with a small page size.
+  // (PageSize=1 was returning rows:[] even though totalCount was correct —
+  // this API appears to require a large enough page size to return rows.)
   try {
     const base = (CFG.dotnetUrl || 'https://api-server-dotnet-sobha.tokenme.net').replace(/\/+$/, '');
-    const headers = { 'Content-Type': 'application/json' };
+    const headers = {};
     if (CFG.auth) headers['Authorization'] = CFG.auth;
 
     let allTokens = [];
     let pageNumber = 0;
-    const pageSize = 500;
-    let hasMoreData = true;
+    const pageSize = 2000; // comfortably above current totalCount (1578) so one page covers everything
+    let hasMore = true;
 
-    while (hasMoreData) {
+    while (hasMore) {
       const res = await fetch(
         `${base}/api/Token?PageNumber=${pageNumber}&PageSize=${pageSize}`,
-        { headers }
+        { headers, signal: AbortSignal.timeout(15000) }
       );
-      if (!res.ok) { fallback(); return; }
+      if (!res.ok) { console.warn('[dotnet] Token API HTTP', res.status); break; }
       const data = await res.json();
       if (data.rows && data.rows.length > 0) {
         allTokens.push(...data.rows);
-        if (data.rows.length < pageSize) hasMoreData = false;
+        if (data.rows.length < pageSize) hasMore = false;
         else pageNumber++;
       } else {
-        hasMoreData = false;
+        hasMore = false;
       }
     }
 
-    const assignedCount = allTokens.filter(t =>
-      (t.roleId > 0) ||
-      (t.subContractorId > 0) ||
-      (t.teamId > 0) ||
-      (t.categoryWorkId > 0) ||
-      (t.subCategoryWorkId > 0)
-    ).length;
-    window._dotnetAssignedCount = assignedCount;
-    setEl('kpi-assigned-total', assignedCount);
-    const curSub = document.getElementById('kpi-assigned-sub');
-    if (curSub && curSub.textContent.includes('Fetching')) {
-      setEl('kpi-assigned-sub', 'Live count \u00b7 Token API');
+    if (allTokens.length > 0) {
+      // Matches the app's own isAssigned definition (token-information.component.ts):
+      // a token is assigned if roleId > 0 — not the broader 5-field OR.
+      const assignedCount = allTokens.filter(t => t.roleId > 0).length;
+      setAssignedCount(assignedCount, 'Live count \u00b7 Token API');
+      return;
     }
+    console.warn('[dotnet] Token API returned 0 rows — falling back to TokensProfiles');
   } catch (e) {
-    fallback();
+    // CORS or network error — expected in browser; fall through silently.
+    console.warn('[dotnet] Token API unreachable (CORS or network):', e.message);
   }
+
+  // ── Path 2: SLS TokensProfiles — works in browser, no CORS issues ────────
+  // TokensProfiles returns only assigned tokens (workers with a profile/role),
+  // so its count is the assigned token count.
+  try {
+    const _profOpts2 = { signal: AbortSignal.timeout(15000) };
+    if (CFG.auth) _profOpts2.headers = { Authorization: CFG.auth };
+    const res2 = await fetch(CFG.profilesUrl, _profOpts2);
+    if (res2.ok) {
+      const raw2 = await res2.json();
+      const list2 = Array.isArray(raw2) ? raw2
+        : (raw2.tokens && Array.isArray(raw2.tokens)) ? raw2.tokens
+        : (raw2.data   && Array.isArray(raw2.data))   ? raw2.data : [];
+      if (list2.length > 0) {
+        setAssignedCount(list2.length, 'Live count \u00b7 TokensProfiles API');
+        return;
+      }
+    }
+  } catch (e2) {
+    console.warn('[profiles] TokensProfiles fetch failed:', e2.message);
+  }
+
+  // ── Path 3: EXCEL_REGISTRY fallback ──────────────────────────────────────
+  window._dotnetAssignedCount = null;
+  const fb = Object.keys(EXCEL_REGISTRY).filter(k => !isTokenMe(EXCEL_REGISTRY[k].div)).length;
+  setAssignedCount(fb, 'Registry fallback \u00b7 live count unavailable');
 }
 
 // ══════════════════════════════════════════════════════════════════════
